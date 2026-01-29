@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Tournée Pro - Ergonomie</title>
+    <style>
+        body { font-family: sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; }
+        .app { max-width: 600px; margin: auto; }
+        .status-gps { font-size: 0.8em; text-align: center; color: #000; background: #ffcc00; padding: 8px; border-radius: 5px; margin-bottom: 5px; font-weight: bold; }
+        .distance-info { font-size: 0.7em; text-align: center; color: #aaa; margin-bottom: 10px; font-style: italic; }
+        
+        .saisie { background: #222; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #444; }
+        .ligne-horaire { display: flex; gap: 10px; align-items: center; }
+        #heureSaisie { width: 100%; padding: 15px; border-radius: 8px; border: 1px solid #ffcc00; background: #333; color: white; font-size: 18px; }
+        
+        #gpsSaisie { padding: 15px; border-radius: 8px; border: none; background: #333; color: white; font-size: 16px; width: calc(100% - 30px); }
+        
+        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-coller { background: #6c757d; color: white; padding: 12px; font-size: 1em; width: 100%; margin-top: 2px; }
+        .btn-ajouter { background: #007bff; color: white; padding: 18px; font-size: 1.2em; margin-top: 5px; }
+
+        .ligne-etape { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 6px solid #ffcc00; gap: 10px; }
+        .heure-col { font-size: 1.2em; font-weight: bold; color: #ffcc00; min-width: 60px; }
+        .gps-col { flex: 1; color: #00d4ff; text-decoration: underline; font-family: monospace; font-size: 0.85em; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        
+        .temps-ecart { min-width: 105px; font-weight: bold; text-align: center; font-size: 0.85em; padding: 5px; border-radius: 4px; }
+        .retard { color: #ff4444; background: rgba(255, 68, 68, 0.1); } 
+        .avance { color: #00ff00; background: rgba(0, 255, 0, 0.1); }
+        
+        .btn-ok { background: #28a745; color: white; padding: 12px; min-width: 50px; }
+        .btn-del { background: #333; color: #888; padding: 12px; }
+        .fait { opacity: 0.7; border-left-color: #28a745; background: #0a200a; }
+        .btn-reset { background: #b02a37; color: white; padding: 15px; width: 100%; margin-top: 30px; }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <div class="status-gps" id="statusGps">GPS : RECHERCHE SIGNAL...</div>
+    <div class="distance-info" id="distanceInfo">En attente de destination...</div>
+
+    <div class="saisie">
+        <input type="time" id="heureSaisie">
+        
+        <input type="text" id="gpsSaisie" placeholder="Lat, Lon (ex: 50,68... , 4,22...)">
+        
+        <button class="btn-coller" onclick="collerGps()">📋 COLLER LES COORDONNÉES</button>
+        
+        <button class="btn-ajouter" onclick="ajouterEtape()">AJOUTER À LA TOURNEE</button>
+    </div>
+
+    <div id="listeTournee"></div>
+    <button class="btn-reset" onclick="resetTournee()">🔄 EFFACER TOUTE LA JOURNÉE</button>
+</div>
+
+<script>
+    function verifierDateEtCharger() {
+        const aujourdhui = new Date().toLocaleDateString();
+        const derniereDate = localStorage.getItem('dateTournee');
+        if (derniereDate !== aujourdhui) {
+            localStorage.removeItem('maTournee');
+            localStorage.setItem('dateTournee', aujourdhui);
+            return [];
+        }
+        return JSON.parse(localStorage.getItem('maTournee')) || [];
+    }
+
+    let etapes = verifierDateEtCharger();
+    let maPosition = null;
+
+    function demarrerGps() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition(
+                (pos) => {
+                    maPosition = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                    document.getElementById('statusGps').innerText = `📡 GPS ACTIF (Précision: ${Math.round(pos.coords.accuracy)}m)`;
+                    verifierProximite();
+                },
+                (err) => { document.getElementById('statusGps').innerText = "❌ GPS BLOQUÉ"; },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+            );
+        }
+    }
+
+    function extraireCoords(texte) {
+        let clean = texte.replace(/,/g, '.'); 
+        let matches = clean.match(/-?\d+\.\d+/g);
+        if (matches && matches.length >= 2) {
+            return { lat: parseFloat(matches[0]), lon: parseFloat(matches[1]) };
+        }
+        return null;
+    }
+
+    function calculerDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function verifierProximite() {
+        if (!maPosition) return;
+        let aSauvegarder = false;
+        let distAffichage = "Aucun arrêt proche";
+
+        etapes.forEach((etape) => {
+            if (!etape.fait) {
+                const target = extraireCoords(etape.gps);
+                if (target) {
+                    const dist = calculerDistance(maPosition.lat, maPosition.lon, target.lat, target.lon);
+                    distAffichage = `Prochain arrêt à : ${Math.round(dist)}m`;
+                    if (dist < 50) { 
+                        etape.ecartFinal = calculerEcartFormate(etape.hPrevue);
+                        etape.fait = true; 
+                        aSauvegarder = true;
+                        if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    }
+                }
+            }
+        });
+        document.getElementById('distanceInfo').innerText = distAffichage;
+        if (aSauvegarder) sauvegarder();
+    }
+
+    function calculerEcartFormate(hPrevue) {
+        const maintenant = new Date();
+        const [h, m] = hPrevue.split(':').map(Number);
+        const dateP = new Date(); dateP.setHours(h, m, 0, 0);
+        const diffMilli = maintenant - dateP;
+        const absSec = Math.floor(Math.abs(diffMilli) / 1000);
+        const signe = diffMilli > 0 ? "+" : "-";
+        return {
+            texte: `${signe}${Math.floor(absSec / 60)}m ${absSec % 60}s`,
+            classe: diffMilli > 0 ? "retard" : "avance"
+        };
+    }
+
+    async function collerGps() {
+        try {
+            const texte = await navigator.clipboard.readText();
+            document.getElementById('gpsSaisie').value = texte;
+        } catch (err) { alert("Action bloquée. Colle manuellement."); }
+    }
+
+    function ajouterEtape() {
+        const h = document.getElementById('heureSaisie').value;
+        const gps = document.getElementById('gpsSaisie').value;
+        if (!h || !gps) return;
+        etapes.push({ hPrevue: h, gps: gps, fait: false, ecartFinal: null });
+        sauvegarder();
+        document.getElementById('gpsSaisie').value = "";
+    }
+
+    function sauvegarder() {
+        localStorage.setItem('maTournee', JSON.stringify(etapes));
+        localStorage.setItem('dateTournee', new Date().toLocaleDateString());
+        afficher();
+    }
+
+    function afficher() {
+        const liste = document.getElementById('listeTournee');
+        if (!liste) return;
+        liste.innerHTML = "";
+        etapes.forEach((etape, index) => {
+            const div = document.createElement('div');
+            div.className = `ligne-etape ${etape.fait ? 'fait' : ''}`;
+            const res = etape.fait && etape.ecartFinal ? etape.ecartFinal : calculerEcartFormate(etape.hPrevue);
+            div.innerHTML = `
+                <span class="heure-col">${etape.hPrevue}</span>
+                <span class="gps-col" onclick="window.open('google.navigation:q=' + encodeURIComponent('${etape.gps}'))">${etape.gps}</span>
+                <span class="temps-ecart ${res.classe}">${res.texte}</span>
+                <button class="btn-ok" onclick="validerManuel(${index})">${etape.fait ? '✓' : 'OK'}</button>
+                <button class="btn-del" onclick="supprimer(${index})">×</button>
+            `;
+            liste.appendChild(div);
+        });
+    }
+
+    function validerManuel(i) {
+        if (!etapes[i].fait) {
+            etapes[i].ecartFinal = calculerEcartFormate(etapes[i].hPrevue);
+            etapes[i].fait = true;
+        } else {
+            etapes[i].fait = false;
+            etapes[i].ecartFinal = null;
+        }
+        sauvegarder();
+    }
+    function supprimer(i) { if(confirm("Supprimer ?")) { etapes.splice(i, 1); sauvegarder(); } }
+    function resetTournee() { if(confirm("Tout effacer ?")) { etapes = []; sauvegarder(); } }
+
+    demarrerGps();
+    setInterval(afficher, 1000);
+    afficher();
+</script>
+</body>
+</html>

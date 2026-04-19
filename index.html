@@ -19,16 +19,12 @@
         .dist-live { font-size: 0.8em; margin-top: 8px; color: #00d4ff; font-style: italic; }
         .proche { color: #ffcc00; font-weight: bold; font-style: normal; }
         .fait { opacity: 0.3; border-left-color: #28a745; background: #0a200a; }
-        
-        /* Styles Edition */
         .btn-edit { background: #444; color: #fff; border: none; padding: 8px; border-radius: 5px; font-size: 0.8em; cursor: pointer; }
         .btn-delete { background: #441111; color: #ff4444; border: none; padding: 8px; border-radius: 5px; font-weight: bold; }
         .form-ajout { background: #222; border: 2px solid #ffcc00; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
         .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
         input { background: #000; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 5px; flex: 1; }
         .btn-add-main { background: #ffcc00; color: #000; width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; margin-bottom: 15px; cursor: pointer; }
-        
-        /* Config & Historique */
         .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; }
         .config-panel { background: #222; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px dashed #444; }
         .historique { background: #111; border: 1px solid #333; padding: 10px; border-radius: 10px; margin-top: 20px; font-size: 0.75em; }
@@ -63,9 +59,7 @@
     <button class="btn-save" onclick="sauvegarderBilan(true)">💾 SAUVEGARDER LE BILAN DU JOUR</button>
 
     <div class="config-panel">
-        <input type="time" id="inputResetTime" style="width:100px">
-        <button onclick="confirmerNouvelleHeure()" style="padding:10px">VALIDER HEURE RESET</button>
-        <button class="btn-save" style="background:#b30000; font-size:0.8em;" onclick="forcerReset()">⚠️ RESET LISTE (MASTER)</button>
+        <button class="btn-save" style="background:#b30000; font-size:0.8em; margin:0;" onclick="forcerReset()">⚠️ RÉINITIALISER LA LISTE COMPLÈTE</button>
     </div>
 
     <div class="historique">
@@ -111,8 +105,22 @@
         { h: "16:48", gps: "50.7938468, 4.3399805" }
     ];
 
-    let etapes = JSON.parse(localStorage.getItem('maTournee')) || chargerMaster();
+    let etapes = [];
     let maPositionActuelle = null;
+
+    // Chargement initial sécurisé
+    function initialiserDonnees() {
+        const saved = localStorage.getItem('maTournee');
+        if (saved && saved !== "[]") {
+            try {
+                etapes = JSON.parse(saved);
+            } catch (e) {
+                etapes = chargerMaster();
+            }
+        } else {
+            etapes = chargerMaster();
+        }
+    }
 
     function chargerMaster() {
         const data = LISTE_MASTER.map(item => ({
@@ -124,7 +132,6 @@
 
     function save() { localStorage.setItem('maTournee', JSON.stringify(etapes)); }
 
-    // --- LOGIQUE ÉDITION ---
     function toggleForm(index = -1) {
         const form = document.getElementById('formEtape');
         form.style.display = (form.style.display === 'none' || index >= 0) ? 'block' : 'none';
@@ -157,3 +164,110 @@
     }
 
     function supprimerEtape(index) {
+        if(confirm("Supprimer cette étape ?")) { etapes.splice(index, 1); save(); afficher(); }
+    }
+
+    function demarrerGps() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition((pos) => {
+                maPositionActuelle = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                document.getElementById('statusGps').innerText = `📡 GPS ACTIF (+/- ${Math.round(pos.coords.accuracy)}m)`;
+                calculerToutesLesDistances();
+            }, null, { enableHighAccuracy: true });
+        }
+    }
+
+    function calculerDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    function calculerToutesLesDistances() {
+        if (!maPositionActuelle) return;
+        etapes.forEach((etape, i) => {
+            const coords = etape.gps.split(',').map(c => parseFloat(c.trim()));
+            const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, coords[0], coords[1]);
+            etapes[i].dist = d;
+            if (!etape.fait && d < 60) { valider(i); if(navigator.vibrate) navigator.vibrate(400); }
+        });
+        afficher();
+    }
+
+    function calculerEcart(hPrevue) {
+        const maintenant = new Date();
+        const [h, m] = hPrevue.split(':').map(Number);
+        const cible = new Date(); cible.setHours(h, m, 0, 0);
+        const diff = maintenant - cible;
+        const sec = Math.floor(Math.abs(diff) / 1000);
+        return { texte: `${diff > 0 ? "+" : "-"}${Math.floor(sec / 60)}m ${sec % 60}s`, classe: diff > 0 ? "retard" : "avance" };
+    }
+
+    function valider(i) {
+        if (!etapes[i].fait) { etapes[i].ecartFinal = calculerEcart(etapes[i].hPrevue); etapes[i].fait = true; }
+        else { etapes[i].fait = false; etapes[i].ecartFinal = null; }
+        save(); afficher();
+    }
+
+    function afficher() {
+        const liste = document.getElementById('listeTournee');
+        if (!liste) return;
+        liste.innerHTML = "";
+        
+        etapes.forEach((etape, i) => {
+            if(etape.label) {
+                const sep = document.createElement('div');
+                sep.className = "separateur";
+                sep.innerText = "☀️ " + etape.label;
+                liste.appendChild(sep);
+            }
+            const res = etape.fait && etape.ecartFinal ? etape.ecartFinal : calculerEcart(etape.hPrevue);
+            const distTxt = (etape.dist !== null && !etape.fait) ? `<div class="dist-live ${etape.dist < 100 ? 'proche' : ''}">📍 Distance : ${etape.dist}m</div>` : "";
+            
+            const div = document.createElement('div');
+            div.className = `ligne-etape ${etape.fait ? 'fait' : ''}`;
+            div.innerHTML = `
+                <div class="etape-haut">
+                    <button class="btn-edit" onclick="toggleForm(${i})">✏️</button>
+                    <span class="heure-col">${etape.hPrevue}</span>
+                    <span class="temps-ecart ${res.classe}">${res.texte}</span>
+                    <button class="btn-ok" onclick="valider(${i})">${etape.fait ? '✓' : 'OK'}</button>
+                    <button class="btn-delete" onclick="supprimerEtape(${i})">×</button>
+                </div>
+                ${distTxt}`;
+            liste.appendChild(div);
+        });
+        
+        const hist = JSON.parse(localStorage.getItem('historiqueBilans')) || [];
+        document.getElementById('zoneHistorique').innerHTML = hist.length ? hist.map(b => `<div class="bilan-item">${b}</div>`).join('') : "Aucun bilan.";
+    }
+
+    function sauvegarderBilan(manuel) {
+        let pts = etapes.filter(e => e.fait).length;
+        if (pts === 0) return;
+        let texte = `${new Date().toLocaleDateString()}: `;
+        etapes.forEach(e => { if(e.fait) texte += `[${e.hPrevue}: ${e.ecartFinal.texte}] `; });
+        let h = JSON.parse(localStorage.getItem('historiqueBilans')) || [];
+        h.unshift(texte);
+        localStorage.setItem('historiqueBilans', JSON.stringify(h.slice(0, 10)));
+        if(manuel) alert("Bilan enregistré !");
+        afficher();
+    }
+
+    function forcerReset() {
+        if(confirm("Réinitialiser avec la liste par défaut ?")) { 
+            etapes = chargerMaster(); 
+            afficher(); 
+        }
+    }
+
+    // Lancement de l'app
+    initialiserDonnees();
+    demarrerGps();
+    afficher(); // Affichage immédiat
+    setInterval(afficher, 5000); // Rafraîchissement auto
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Tournée Dynamique v2.9</title>
+    <title>Ma Tournée Dynamique v3.1</title>
     <style>
         :root {
             --accent: #ffcc00;
@@ -52,10 +52,10 @@
         .dist-live { font-size: 0.85em; margin-top: 10px; color: var(--info); font-weight: 600; }
         .fait-visuel { opacity: 0.3; transform: scale(0.98); border-left-color: var(--safe); }
         
-        #customConfirm { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 2px solid var(--danger); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #customConfirm, #modalFin { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 2px solid var(--accent); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-confirm { background: var(--danger); color: white; flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
+        .btn-confirm { background: var(--safe); color: white; flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
         .btn-cancel { background: #444; color: white; flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
 
         .form-ajout { background: var(--card-bg); border: 2px solid var(--accent); padding: 20px; border-radius: 15px; margin-bottom: 20px; }
@@ -70,12 +70,24 @@
 <body class="dark-mode">
 
 <div id="customConfirm">
-    <div class="modal-content">
+    <div class="modal-content" style="border-color: var(--danger);">
         <h3 style="margin-top:0; color: var(--danger);">⚠️ Supprimer ?</h3>
         <p>Veux-tu vraiment retirer ce trajet de ta liste ?</p>
         <div class="modal-btns">
-            <button class="btn-confirm" id="confirmYes">OUI, SUPPRIMER</button>
+            <button class="btn-confirm" style="background: var(--danger);" id="confirmYes">OUI, SUPPRIMER</button>
             <button class="btn-cancel" id="confirmNo">NON, GARDER</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalFin">
+    <div class="modal-content">
+        <h2 style="margin-top:0; color: var(--safe);">🏁 Tournée terminée !</h2>
+        <p>Bravo ! Toutes les étapes ont été validées.</p>
+        <p id="timerText">Fermeture dans 30s...</p>
+        <div class="modal-btns">
+            <button class="btn-confirm" onclick="fermerApplication()">QUITTER MAINTENANT</button>
+            <button class="btn-cancel" onclick="annulerFermeture()">RESTER ICI</button>
         </div>
     </div>
 </div>
@@ -161,6 +173,8 @@
     let etapes = [];
     let maPositionActuelle = null;
     let indexASupprimer = null;
+    let timerFin = null;
+    let compteARebours = 30;
 
     function initTheme() {
         const saved = localStorage.getItem('themePref');
@@ -189,11 +203,8 @@
                 alert("Adresse introuvable.");
                 btn.innerText = "❌";
             }
-        } catch (e) {
-            btn.innerText = "🔍";
-        } finally {
-            setTimeout(() => btn.innerText = "🔍", 3000);
-        }
+        } catch (e) { btn.innerText = "🔍"; }
+        finally { setTimeout(() => btn.innerText = "🔍", 3000); }
     }
 
     function chargerMaster() {
@@ -260,19 +271,11 @@
     function calculerToutesLesDistances() {
         if (!maPositionActuelle) return;
         const heureActuelle = new Date().getHours();
-        
         etapes.forEach((etape, i) => {
             if (etape.fait) return;
-            
-            // FILTRE MATIN / APRES-MIDI
             const estMatin = etape.label === "MATIN";
             const bonCreneau = estMatin ? (heureActuelle < 13) : (heureActuelle >= 13);
-            
-            if (!bonCreneau) {
-                etapes[i].dist = null; // On n'affiche pas la distance si c'est pas le bon moment
-                return;
-            }
-
+            if (!bonCreneau) { etapes[i].dist = null; return; }
             const c = etape.gps.split(',').map(parseFloat);
             if (c.length === 2 && !isNaN(c[0]) && !isNaN(c[1])) {
                 const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, c[0], c[1]);
@@ -280,6 +283,7 @@
                 if (d < 50) validerEtMasquer(i);
             }
         });
+        verifierFinDeTournee(heureActuelle);
         afficher();
     }
 
@@ -290,6 +294,39 @@
             setTimeout(() => { etapes[i].cachee = true; afficher(); }, 4000);
             afficher();
         }
+    }
+
+    function verifierFinDeTournee(heureActuelle) {
+        const creneau = heureActuelle < 13 ? "MATIN" : "APRÈS-MIDI";
+        const etapesDuCreneau = etapes.filter(e => e.label === creneau);
+        const toutesFaites = etapesDuCreneau.length > 0 && etapesDuCreneau.every(e => e.fait);
+        
+        if (toutesFaites && !timerFin) {
+            setTimeout(declencherPopUpFin, 5000); // DÉLAI RÉDUIT À 5 SECONDES
+            timerFin = true;
+        }
+    }
+
+    function declencherPopUpFin() {
+        document.getElementById('modalFin').style.display = 'flex';
+        const inter = setInterval(() => {
+            compteARebours--;
+            document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
+            if(compteARebours <= 0) { clearInterval(inter); fermerApplication(); }
+        }, 1000);
+    }
+
+    function annulerFermeture() {
+        document.getElementById('modalFin').style.display = 'none';
+        compteARebours = 30; 
+    }
+
+    function fermerApplication() {
+        window.close();
+        setTimeout(() => {
+            document.querySelector('#modalFin h2').innerText = "Fermeture requise";
+            document.getElementById('timerText').innerText = "Veuillez fermer cet onglet manuellement sur votre téléphone.";
+        }, 500);
     }
 
     function calculerEcart(hPrevue) {

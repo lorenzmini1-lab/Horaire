@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Tournée Dynamique v3.1</title>
+    <title>Ma Tournée Dynamique v3.2</title>
     <style>
         :root {
             --accent: #ffcc00;
@@ -65,6 +65,11 @@
         
         .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
         #codeOutput { width: 100%; height: 150px; background: #000; color: #00ff00; font-size: 10px; margin-top: 10px; }
+
+        /* Style Historique */
+        .historique-zone { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-top: 20px; }
+        .hist-item { font-size: 0.85em; padding: 5px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .hist-heure { color: var(--accent); font-weight: bold; margin-right: 10px; }
     </style>
 </head>
 <body class="dark-mode">
@@ -123,6 +128,11 @@
 
     <div id="listeTournee"></div>
     
+    <div class="historique-zone">
+        <h4 style="margin-top:0; color:var(--info)">📜 HISTORIQUE</h4>
+        <div id="logs" style="max-height: 120px; overflow-y: auto;"></div>
+    </div>
+
     <div style="margin-top:30px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
         <button class="btn-save" onclick="genererNouveauCode()">⚙️ GÉNÉRER CODE GITHUB</button>
         <div id="zoneExport" style="display:none">
@@ -187,6 +197,17 @@
         localStorage.setItem('themePref', document.body.className);
     }
 
+    // FONCTION HISTORIQUE
+    function ajouterLog(msg) {
+        const logBox = document.getElementById('logs');
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+        const item = document.createElement('div');
+        item.className = 'hist-item';
+        item.innerHTML = `<span class="hist-heure">[${timeStr}]</span> <span>${msg}</span>`;
+        logBox.prepend(item);
+    }
+
     async function rechercherAdresse() {
         const input = document.getElementById('newGps');
         const query = input.value.trim();
@@ -199,6 +220,7 @@
             if (data && data.length > 0) {
                 input.value = `${parseFloat(data[0].lat).toFixed(7)}, ${parseFloat(data[0].lon).toFixed(7)}`;
                 btn.innerText = "✅";
+                ajouterLog(`Adresse trouvée : ${query}`);
             } else {
                 alert("Adresse introuvable.");
                 btn.innerText = "❌";
@@ -233,8 +255,14 @@
         const h = document.getElementById('newHeure').value, g = document.getElementById('newGps').value, l = document.getElementById('newLabel').value, idx = document.getElementById('editIndex').value;
         if (!h || !g) return;
         const obj = { hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null };
-        if (idx !== "") etapes[idx] = { ...etapes[idx], ...obj };
-        else { etapes.push(obj); etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue)); }
+        if (idx !== "") {
+            etapes[idx] = { ...etapes[idx], ...obj };
+            ajouterLog(`Modifié : ${h}`);
+        } else {
+            etapes.push(obj);
+            etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue));
+            ajouterLog(`Ajouté : ${h}`);
+        }
         calculerToutesLesDistances();
         save(); toggleForm(); afficher();
     }
@@ -245,7 +273,12 @@
     }
 
     document.getElementById('confirmYes').onclick = () => {
-        if(indexASupprimer !== null) { etapes.splice(indexASupprimer, 1); save(); afficher(); }
+        if(indexASupprimer !== null) {
+            ajouterLog(`Supprimé : ${etapes[indexASupprimer].hPrevue}`);
+            etapes.splice(indexASupprimer, 1);
+            save();
+            afficher();
+        }
         document.getElementById('customConfirm').style.display = 'none';
     };
 
@@ -280,17 +313,19 @@
             if (c.length === 2 && !isNaN(c[0]) && !isNaN(c[1])) {
                 const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, c[0], c[1]);
                 etapes[i].dist = d;
-                if (d < 50) validerEtMasquer(i);
+                if (d < 50) validerEtMasquer(i, true);
             }
         });
         verifierFinDeTournee(heureActuelle);
         afficher();
     }
 
-    function validerEtMasquer(i) {
+    function validerEtMasquer(i, auto = false) {
         if (!etapes[i].fait) {
             etapes[i].ecartFinal = calculerEcart(etapes[i].hPrevue);
-            etapes[i].fait = true; save();
+            etapes[i].fait = true;
+            ajouterLog(`${auto ? '🤖 Auto' : '🖐️ Manuel'} : Terminé ${etapes[i].hPrevue}`);
+            save();
             setTimeout(() => { etapes[i].cachee = true; afficher(); }, 4000);
             afficher();
         }
@@ -302,7 +337,8 @@
         const toutesFaites = etapesDuCreneau.length > 0 && etapesDuCreneau.every(e => e.fait);
         
         if (toutesFaites && !timerFin) {
-            setTimeout(declencherPopUpFin, 5000); // DÉLAI RÉDUIT À 5 SECONDES
+            ajouterLog(`🏁 Fin de la tournée détectée.`);
+            setTimeout(declencherPopUpFin, 5000);
             timerFin = true;
         }
     }
@@ -325,7 +361,7 @@
         window.close();
         setTimeout(() => {
             document.querySelector('#modalFin h2').innerText = "Fermeture requise";
-            document.getElementById('timerText').innerText = "Veuillez fermer cet onglet manuellement sur votre téléphone.";
+            document.getElementById('timerText').innerText = "Veuillez fermer cet onglet manuellement.";
         }, 500);
     }
 
@@ -378,7 +414,7 @@
     }
 
     function copierCode() { document.getElementById('codeOutput').select(); document.execCommand("copy"); alert("Copié !"); }
-    function forcerReset() { if(confirm("Réinitialiser ?")) { etapes = chargerMaster(); afficher(); } }
+    function forcerReset() { if(confirm("Réinitialiser ?")) { etapes = chargerMaster(); ajouterLog("RESET MASTER EFFECTUÉ"); afficher(); } }
 
     document.addEventListener('DOMContentLoaded', () => {
         initTheme();
@@ -386,6 +422,7 @@
         etapes = (saved && saved !== "[]") ? JSON.parse(saved) : chargerMaster();
         demarrerGps();
         afficher();
+        ajouterLog("Application démarrée");
         setInterval(afficher, 1000);
     });
 </script>

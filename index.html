@@ -3,96 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Tournée Dynamique</title>
+    <title>Ma Tournée Dynamique v2.8</title>
     <style>
-        body { font-family: sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; }
+        :root {
+            --accent: #ffcc00;
+            --safe: #28a745;
+            --danger: #ff4444;
+            --info: #00d4ff;
+        }
+
+        body.dark-mode {
+            --bg: #000;
+            --card-bg: #111;
+            --text: #fff;
+            --border: #222;
+            --modal-overlay: rgba(0,0,0,0.85);
+        }
+
+        body.light-mode {
+            --bg: #f4f4f4;
+            --card-bg: #ffffff;
+            --text: #000;
+            --border: #ddd;
+            --modal-overlay: rgba(0,0,0,0.5);
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; transition: background 0.3s; }
         .app { max-width: 600px; margin: auto; }
-        .status-gps { font-size: 0.8em; text-align: center; color: #000; background: #ffcc00; padding: 10px; border-radius: 8px; margin-bottom: 5px; font-weight: bold; position: sticky; top: 0; z-index: 100; }
-        .separateur { background: #333; color: #ffcc00; padding: 10px; text-align: center; font-weight: bold; font-size: 1em; border-radius: 5px; margin: 20px 0 10px 0; border: 1px solid #ffcc00; }
-        .ligne-etape { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 6px solid #ffcc00; display: flex; flex-direction: column; transition: all 0.5s ease; }
+        
+        .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
+        .status-gps { flex-grow: 1; font-size: 0.85em; text-align: center; color: #000; background: var(--accent); padding: 12px; border-radius: 12px; font-weight: 800; }
+        .btn-theme { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 12px; font-size: 1.2em; width: 45px; height: 45px; cursor: pointer; }
+
+        .separateur { background: var(--card-bg); color: var(--accent); padding: 12px; text-align: center; font-weight: bold; border-radius: 8px; margin: 20px 0 10px 0; border: 1px solid var(--accent); }
+        
+        .ligne-etape { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--accent); display: flex; flex-direction: column; border: 1px solid var(--border); }
         .etape-haut { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .heure-col { font-size: 1.1em; font-weight: bold; color: #ffcc00; min-width: 65px; }
-        .temps-ecart { flex-grow: 1; font-weight: bold; text-align: center; font-size: 0.8em; padding: 5px; border-radius: 4px; }
-        .retard { color: #ff4444; background: rgba(255, 68, 68, 0.2); } 
-        .avance { color: #00ff00; background: rgba(0, 255, 0, 0.2); }
-        .btn-ok { background: #28a745; color: white; padding: 10px 15px; border-radius: 8px; border:none; font-weight:bold; }
-        .dist-live { font-size: 0.8em; margin-top: 8px; color: #00d4ff; font-style: italic; }
-        .proche { color: #ffcc00; font-weight: bold; }
-        .fait-visuel { opacity: 0.3; border-left-color: #28a745; background: #0a200a; }
         
-        .btn-edit { background: #444; color: #fff; border: none; padding: 8px; border-radius: 5px; font-size: 0.8em; }
-        .btn-delete { background: #441111; color: #ff4444; border: none; padding: 8px; border-radius: 5px; }
-        .form-ajout { background: #222; border: 2px solid #ffcc00; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input, select, textarea { background: #000; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 5px; flex: 1; font-size: 1em; }
+        .heure-col { font-size: 1.1em; font-weight: 900; color: var(--accent); min-width: 60px; }
+        .temps-ecart { flex-grow: 1; font-weight: bold; text-align: center; font-size: 0.85em; padding: 8px; border-radius: 6px; }
+        .retard { color: var(--danger); background: rgba(255, 68, 68, 0.1); border: 1px solid var(--danger); } 
+        .avance { color: var(--safe); background: rgba(0, 255, 0, 0.1); border: 1px solid var(--safe); }
         
-        .btn-add-main { background: #ffcc00; color: #000; width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; margin-bottom: 15px; }
-        .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; margin-top: 10px; }
-        .btn-danger { background: #b30000; color: white; width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; margin-top: 15px; font-size: 0.8em; }
+        .btn-ok { background: var(--safe); color: white; padding: 10px 15px; border-radius: 8px; border:none; font-weight:bold; }
+        .btn-edit { background: #333; color: #fff; border: none; padding: 10px; border-radius: 8px; }
+        .btn-delete { background: #441111; color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 8px; font-weight: bold; }
+
+        .dist-live { font-size: 0.85em; margin-top: 10px; color: var(--info); font-weight: 600; }
+        .fait-visuel { opacity: 0.3; transform: scale(0.98); border-left-color: var(--safe); }
         
-        /* Zone Export */
-        #zoneExport { display:none; background: #111; border: 2px solid #007bff; padding: 15px; border-radius: 10px; margin-top: 20px; }
-        #codeOutput { width: 100%; height: 150px; font-family: monospace; font-size: 10px; margin-top: 10px; }
+        #customConfirm { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 2px solid var(--danger); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-confirm { background: var(--danger); color: white; flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
+        .btn-cancel { background: #444; color: white; flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
+
+        .form-ajout { background: var(--card-bg); border: 2px solid var(--accent); padding: 20px; border-radius: 15px; margin-bottom: 20px; }
+        .input-group { display: flex; gap: 5px; margin-bottom: 10px; }
+        input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; }
+        .btn-search { background: var(--info); color: #000; border: none; border-radius: 8px; padding: 0 15px; cursor: pointer; font-size: 1.2em; min-width: 50px; }
         
-        .historique { background: #111; border: 1px solid #333; padding: 15px; border-radius: 10px; margin-top: 20px; font-size: 0.75em; }
-        .bilan-item { border-bottom: 1px solid #222; padding: 8px 0; color: #aaa; }
+        .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        #codeOutput { width: 100%; height: 150px; background: #000; color: #00ff00; font-size: 10px; margin-top: 10px; }
     </style>
 </head>
-<body>
+<body class="dark-mode">
+
+<div id="customConfirm">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color: var(--danger);">⚠️ Supprimer ?</h3>
+        <p>Veux-tu vraiment retirer ce trajet de ta liste ?</p>
+        <div class="modal-btns">
+            <button class="btn-confirm" id="confirmYes">OUI, SUPPRIMER</button>
+            <button class="btn-cancel" id="confirmNo">NON, GARDER</button>
+        </div>
+    </div>
+</div>
 
 <div class="app">
-    <div class="status-gps" id="statusGps">GPS : RECHERCHE...</div>
-    <button class="btn-add-main" onclick="toggleForm()">➕ AJOUTER UNE ÉTAPE</button>
+    <div class="header-controls">
+        <div class="status-gps" id="statusGps">🛰️ RECHERCHE GPS...</div>
+        <button class="btn-theme" onclick="toggleTheme()">🌓</button>
+    </div>
+    
+    <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="toggleForm()">➕ AJOUTER UNE ÉTAPE</button>
 
     <div id="formEtape" class="form-ajout" style="display: none;">
-        <h4 id="formTitle" style="margin-top:0">Action</h4>
+        <h3 id="formTitle" style="margin:0 0 15px 0; color:var(--accent)">Configuration Étape</h3>
         <input type="hidden" id="editIndex">
-        <div class="form-row">
-            <input type="time" id="newHeure">
-            <input type="text" id="newGps" placeholder="Lat, Lon">
+        <input type="time" id="newHeure" style="margin-bottom:10px">
+        
+        <div class="input-group">
+            <input type="text" id="newGps" placeholder="Rue, Ville...">
+            <button class="btn-search" onclick="rechercherAdresse()" type="button">🔍</button>
         </div>
-        <div class="form-row">
-            <select id="newLabel">
-                <option value="MATIN">TOURNÉE MATIN</option>
-                <option value="APRÈS-MIDI">TOURNÉE APRÈS-MIDI</option>
-            </select>
-        </div>
-        <div class="form-row">
-            <button class="btn-save" style="margin:0; background:#28a745" onclick="sauvegarderEtape()">ENREGISTRER</button>
-            <button class="btn-save" style="margin:0; background:#666" onclick="toggleForm()">ANNULER</button>
+        <small style="display:block; margin-bottom:10px; color:#888;">Note: Ajoute la ville pour plus de précision.</small>
+        
+        <select id="newLabel" style="margin-bottom:10px">
+            <option value="MATIN">MATIN</option>
+            <option value="APRÈS-MIDI">APRÈS-MIDI</option>
+        </select>
+        
+        <div style="display:flex; gap:10px;">
+            <button class="btn-save" style="background:var(--safe)" onclick="sauvegarderEtape()">ENREGISTRER</button>
+            <button class="btn-save" style="background:#444" onclick="toggleForm()">ANNULER</button>
         </div>
     </div>
 
     <div id="listeTournee"></div>
     
-    <button class="btn-save" onclick="sauvegarderBilan(true)">💾 SAUVEGARDER LE BILAN DU JOUR</button>
-
-    <div class="historique">
-        <h3 style="margin-top:0; color:#007bff;">Historique des Bilans</h3>
-        <div id="zoneHistorique"></div>
-        <button class="btn-danger" onclick="effacerHistorique()">🗑️ EFFACER L'HISTORIQUE</button>
-    </div>
-
-    <div style="margin-top:40px; padding: 15px; background: #001529; border-radius: 10px; border: 1px solid #007bff;">
-        <h4 style="margin:0 0 10px 0; color: #00d4ff;">Sauvegarde Définitive</h4>
-        <p style="font-size: 0.7em; color: #ccc; margin-bottom: 10px;">Utilise ce bouton pour enregistrer tes nouveaux points définitivement dans le code source.</p>
-        <button class="btn-save" style="background:#007bff; margin:0;" onclick="genererNouveauCode()">⚙️ GÉNÉRER MON CODE MIS À JOUR</button>
-        
-        <div id="zoneExport">
-            <p style="font-size: 0.8em; font-weight: bold; color: #00ff00;">✓ Code généré avec succès !</p>
+    <div style="margin-top:30px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
+        <button class="btn-save" onclick="genererNouveauCode()">⚙️ GÉNÉRER CODE GITHUB</button>
+        <div id="zoneExport" style="display:none">
             <textarea id="codeOutput" readonly></textarea>
-            <button class="btn-save" style="background:#28a745" onclick="copierCode()">📋 COPIER TOUT LE CODE</button>
-            <button class="btn-save" style="background:#444" onclick="document.getElementById('zoneExport').style.display='none'">FERMER</button>
+            <button class="btn-save" style="background:var(--safe); margin-top:10px;" onclick="copierCode()">📋 COPIER LE CODE</button>
         </div>
-    </div>
-
-    <div style="margin-top:30px; text-align:center">
-        <button onclick="forcerReset()" style="background:#444; color:#fff; border:none; padding:10px; border-radius:5px; font-size:0.7em">⚠️ RECHARGER LISTE MASTER</button>
+        <button onclick="forcerReset()" style="background:none; color:#666; border:none; width:100%; margin-top:15px; font-size:0.8em; text-decoration:underline">Réinitialiser Master</button>
     </div>
 </div>
 
 <script>
-    // --- LISTE MASTER (C'est ici que le code sera récrit) ---
     const LISTE_MASTER = [
         { h: "07:25", gps: "50.7826858, 4.3399798", label: "MATIN" },
         { h: "07:30", gps: "50.7885291, 4.3414057", label: "MATIN" },
@@ -131,53 +161,113 @@
 
     let etapes = [];
     let maPositionActuelle = null;
+    let indexASupprimer = null;
+
+    function initTheme() {
+        const saved = localStorage.getItem('themePref');
+        if (saved) document.body.className = saved;
+        else document.body.className = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark-mode" : "light-mode";
+    }
+
+    function toggleTheme() {
+        document.body.className = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
+        localStorage.setItem('themePref', document.body.className);
+    }
+
+    async function rechercherAdresse() {
+        const input = document.getElementById('newGps');
+        const query = input.value.trim();
+        const btn = document.querySelector('.btn-search');
+
+        if (!query) return;
+        if (/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(query)) {
+            alert("C'est déjà des coordonnées GPS !");
+            return;
+        }
+
+        btn.innerText = "⌛";
+        btn.disabled = true;
+
+        try {
+            // Utilisation de Nominatim avec les paramètres requis
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+            
+            const response = await fetch(url, {
+                headers: { 'Accept-Language': 'fr' }
+            });
+
+            if (!response.ok) throw new Error("Erreur réseau");
+
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat).toFixed(7);
+                const lon = parseFloat(data[0].lon).toFixed(7);
+                input.value = `${lat}, ${lon}`;
+                btn.innerText = "✅";
+            } else {
+                alert("Aucun résultat. Essaie d'ajouter la ville ou le code postal.");
+                btn.innerText = "❌";
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erreur lors de la recherche. Vérifie ta connexion.");
+            btn.innerText = "🔍";
+        } finally {
+            btn.disabled = false;
+            setTimeout(() => { if(btn.innerText !== "🔍") btn.innerText = "🔍"; }, 3000);
+        }
+    }
 
     function chargerMaster() {
-        const data = LISTE_MASTER.map(item => ({
-            hPrevue: item.h, gps: item.gps, label: item.label || null, 
-            fait: false, cachee: false, ecartFinal: null, dist: null
-        }));
-        localStorage.setItem('maTournee', JSON.stringify(data));
+        const data = LISTE_MASTER.map(item => ({ hPrevue: item.h, gps: item.gps, label: item.label, fait: false, cachee: false, dist: null }));
+        localStorage.setItem('maTournee_v2', JSON.stringify(data));
         return data;
     }
 
-    function save() { localStorage.setItem('maTournee', JSON.stringify(etapes)); }
+    function save() { localStorage.setItem('maTournee_v2', JSON.stringify(etapes)); }
 
-    function toggleForm(index = -1) {
-        const form = document.getElementById('formEtape');
-        form.style.display = (form.style.display === 'none' || index >= 0) ? 'block' : 'none';
-        if (index >= 0) {
-            document.getElementById('editIndex').value = index;
-            document.getElementById('newHeure').value = etapes[index].hPrevue;
-            document.getElementById('newGps').value = etapes[index].gps;
-            document.getElementById('newLabel').value = etapes[index].label || "MATIN";
+    function toggleForm(idx = -1) {
+        const f = document.getElementById('formEtape');
+        f.style.display = (f.style.display === 'none' || idx >= 0) ? 'block' : 'none';
+        if (idx >= 0) {
+            document.getElementById('editIndex').value = idx;
+            document.getElementById('newHeure').value = etapes[idx].hPrevue;
+            document.getElementById('newGps').value = etapes[idx].gps;
+            document.getElementById('newLabel').value = etapes[idx].label;
         } else {
-            document.getElementById('editIndex').value = -1;
-            document.getElementById('newHeure').value = ""; document.getElementById('newGps').value = "";
+            document.getElementById('editIndex').value = "";
+            document.getElementById('newGps').value = "";
         }
     }
 
     function sauvegarderEtape() {
-        const h = document.getElementById('newHeure').value;
-        const g = document.getElementById('newGps').value;
-        const l = document.getElementById('newLabel').value;
-        const idx = parseInt(document.getElementById('editIndex').value);
-        if (!h || !g) return alert("Heure et GPS requis");
-        const obj = { hPrevue: h, gps: g, label: l, fait: false, cachee: false, ecartFinal: null, dist: null };
-        if (idx >= 0) etapes[idx] = { ...etapes[idx], ...obj };
+        const h = document.getElementById('newHeure').value, g = document.getElementById('newGps').value, l = document.getElementById('newLabel').value, idx = document.getElementById('editIndex').value;
+        if (!h || !g) return;
+        const obj = { hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null };
+        if (idx !== "") etapes[idx] = { ...etapes[idx], ...obj };
         else { etapes.push(obj); etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue)); }
+        calculerToutesLesDistances();
         save(); toggleForm(); afficher();
     }
 
-    function supprimerEtape(index) {
-        if(confirm("Supprimer ce point ?")) { etapes.splice(index, 1); save(); afficher(); }
+    function demanderSuppression(idx) {
+        indexASupprimer = idx;
+        document.getElementById('customConfirm').style.display = 'flex';
     }
+
+    document.getElementById('confirmYes').onclick = () => {
+        if(indexASupprimer !== null) { etapes.splice(indexASupprimer, 1); save(); afficher(); }
+        document.getElementById('customConfirm').style.display = 'none';
+    };
+
+    document.getElementById('confirmNo').onclick = () => { document.getElementById('customConfirm').style.display = 'none'; };
 
     function demarrerGps() {
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition((pos) => {
                 maPositionActuelle = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                document.getElementById('statusGps').innerText = `📡 GPS OK (+/- ${Math.round(pos.coords.accuracy)}m)`;
+                document.getElementById('statusGps').innerText = `📡 GPS OK (${Math.round(pos.coords.accuracy)}m)`;
                 calculerToutesLesDistances();
             }, null, { enableHighAccuracy: true });
         }
@@ -185,24 +275,20 @@
 
     function calculerDistance(lat1, lon1, lat2, lon2) {
         const R = 6371000;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
         return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
     function calculerToutesLesDistances() {
         if (!maPositionActuelle) return;
-        const heureActuelle = new Date().getHours();
         etapes.forEach((etape, i) => {
             if (etape.fait) return;
-            if (heureActuelle < 13 && etape.label === "APRÈS-MIDI") return;
-            if (heureActuelle >= 13 && etape.label === "MATIN") return;
-            const coords = etape.gps.split(',').map(c => parseFloat(c.trim()));
-            if(coords.length === 2) {
-                const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, coords[0], coords[1]);
+            const c = etape.gps.split(',').map(parseFloat);
+            if (c.length === 2 && !isNaN(c[0]) && !isNaN(c[1])) {
+                const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, c[0], c[1]);
                 etapes[i].dist = d;
-                if (d < 60) { validerEtMasquer(i); if(navigator.vibrate) navigator.vibrate([200, 100, 200]); }
+                if (d < 50) validerEtMasquer(i);
             }
         });
         afficher();
@@ -211,106 +297,70 @@
     function validerEtMasquer(i) {
         if (!etapes[i].fait) {
             etapes[i].ecartFinal = calculerEcart(etapes[i].hPrevue);
-            etapes[i].fait = true;
-            etapes[i].cachee = false;
-            save();
-            afficher(); 
-            setTimeout(() => { etapes[i].cachee = true; afficher(); }, 5000);
+            etapes[i].fait = true; save();
+            setTimeout(() => { etapes[i].cachee = true; afficher(); }, 4000);
+            afficher();
         }
     }
 
     function calculerEcart(hPrevue) {
-        const maintenant = new Date();
-        const [h, m] = hPrevue.split(':').map(Number);
-        const cible = new Date(); cible.setHours(h, m, 0, 0);
+        const maintenant = new Date(), [h, m] = hPrevue.split(':').map(Number), cible = new Date();
+        cible.setHours(h, m, 0, 0);
         const diff = maintenant - cible;
-        const sec = Math.floor(Math.abs(diff) / 1000);
-        return { texte: `${diff > 0 ? "+" : "-"}${Math.floor(sec / 60)}m ${sec % 60}s`, classe: diff > 0 ? "retard" : "avance" };
+        const totalSecAbs = Math.floor(Math.abs(diff) / 1000);
+        const hrs = Math.floor(totalSecAbs / 3600), min = Math.floor((totalSecAbs % 3600) / 60), sec = totalSecAbs % 60;
+        let texte = diff > 0 ? "+" : "-";
+        if (hrs > 0) texte += `${hrs}h ${min}m ${sec}s`;
+        else texte += `${min}m ${sec}s`;
+        return { texte: texte, classe: diff > 0 ? "retard" : "avance" };
     }
 
     function afficher() {
         const liste = document.getElementById('listeTournee');
-        if (!liste) return;
         liste.innerHTML = "";
         let dernierLabel = "";
-        const visibles = etapes.filter(e => !e.cachee);
-        visibles.forEach((etape) => {
-            const idx = etapes.indexOf(etape);
-            if(etape.label && etape.label !== dernierLabel) {
-                const sep = document.createElement('div');
-                sep.className = "separateur";
-                sep.innerText = "☀️ " + etape.label;
-                liste.appendChild(sep);
-                dernierLabel = etape.label;
+        etapes.forEach((etape, idx) => {
+            if (etape.cachee) return;
+            if(etape.label !== dernierLabel) {
+                const sep = document.createElement('div'); sep.className = "separateur";
+                sep.innerText = (etape.label === "MATIN" ? "☀️ " : "🌙 ") + etape.label;
+                liste.appendChild(sep); dernierLabel = etape.label;
             }
             const res = etape.ecartFinal || calculerEcart(etape.hPrevue);
-            const distTxt = (etape.dist !== null) ? `<div class="dist-live ${etape.dist < 100 ? 'proche' : ''}">📍 Distance : ${etape.dist}m</div>` : "";
             const div = document.createElement('div');
             div.className = `ligne-etape ${etape.fait ? 'fait-visuel' : ''}`;
-            div.innerHTML = `<div class="etape-haut">
-                <button class="btn-edit" onclick="toggleForm(${idx})">✏️</button>
-                <span class="heure-col">${etape.hPrevue}</span>
-                <span class="temps-ecart ${res.classe}">${res.texte}</span>
-                <button class="btn-ok" onclick="validerEtMasquer(${idx})">${etape.fait ? '✓' : 'OK'}</button>
-                <button class="btn-delete" onclick="supprimerEtape(${idx})">×</button>
-            </div>${distTxt}`;
+            div.innerHTML = `
+                <div class="etape-haut">
+                    <span class="heure-col">${etape.hPrevue}</span>
+                    <span class="temps-ecart ${res.classe}">${res.texte}</span>
+                    <button class="btn-ok" onclick="validerEtMasquer(${idx})">${etape.fait ? '✓' : 'OK'}</button>
+                    <button class="btn-edit" onclick="toggleForm(${idx})">✏️</button>
+                    <button class="btn-delete" onclick="demanderSuppression(${idx})">×</button>
+                </div>
+                ${etape.dist !== null ? `<div class="dist-live">📍 À ${etape.dist}m</div>` : ""}
+            `;
             liste.appendChild(div);
         });
-        const hist = JSON.parse(localStorage.getItem('historiqueBilans')) || [];
-        document.getElementById('zoneHistorique').innerHTML = hist.length ? hist.map(b => `<div class="bilan-item">${b}</div>`).join('') : "Aucun bilan.";
     }
 
-    function sauvegarderBilan(manuel) {
-        let faites = etapes.filter(e => e.fait && e.ecartFinal);
-        if (!faites.length) { if(manuel) alert("Rien à sauvegarder."); return; }
-        let texte = `${new Date().toLocaleDateString()} : `;
-        faites.forEach(e => texte += `[${e.hPrevue}: ${e.ecartFinal.texte}] `);
-        let h = JSON.parse(localStorage.getItem('historiqueBilans')) || [];
-        h.unshift(texte);
-        localStorage.setItem('historiqueBilans', JSON.stringify(h.slice(0, 10)));
-        if(manuel) alert("Bilan sauvegardé.");
-        afficher();
-    }
-
-    function effacerHistorique() {
-        if(confirm("Effacer tout l'historique des bilans ?")) { localStorage.removeItem('historiqueBilans'); afficher(); }
-    }
-
-    function forcerReset() {
-        if(confirm("Réinitialiser avec la liste Master ?")) { etapes = chargerMaster(); afficher(); }
-    }
-
-    // --- LOGIQUE DE GÉNÉRATION DU NOUVEAU CODE ---
     function genererNouveauCode() {
-        const fullHtml = document.documentElement.outerHTML;
-        // Création de la chaîne JSON pour les étapes
+        const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
         const newMasterData = etapes.map(e => ({ h: e.hPrevue, gps: e.gps, label: e.label }));
-        const masterString = JSON.stringify(newMasterData, null, 8);
-        
-        // On remplace l'ancienne LISTE_MASTER par la nouvelle dans le code
-        const regex = /const LISTE_MASTER = \[[\s\S]*?\];/;
-        const updatedHtml = fullHtml.replace(regex, `const LISTE_MASTER = ${masterString};`);
-        
-        document.getElementById('codeOutput').value = "<!DOCTYPE html>\n" + updatedHtml;
+        const updatedHtml = fullHtml.replace(/const LISTE_MASTER = \[[\s\S]*?\];/, `const LISTE_MASTER = ${JSON.stringify(newMasterData, null, 8)};`);
+        document.getElementById('codeOutput').value = updatedHtml;
         document.getElementById('zoneExport').style.display = 'block';
-        document.getElementById('zoneExport').scrollIntoView();
     }
 
-    function copierCode() {
-        const copyText = document.getElementById('codeOutput');
-        copyText.select();
-        copyText.setSelectionRange(0, 99999);
-        document.execCommand("copy");
-        alert("Code copié ! Vas sur ton GitHub et colle-le à la place de l'ancien.");
-    }
+    function copierCode() { document.getElementById('codeOutput').select(); document.execCommand("copy"); alert("Copié !"); }
+    function forcerReset() { if(confirm("Réinitialiser ?")) { etapes = chargerMaster(); afficher(); } }
 
     document.addEventListener('DOMContentLoaded', () => {
-        const saved = localStorage.getItem('maTournee');
+        initTheme();
+        const saved = localStorage.getItem('maTournee_v2');
         etapes = (saved && saved !== "[]") ? JSON.parse(saved) : chargerMaster();
-        etapes.forEach(e => { if(e.fait) e.cachee = true; });
         demarrerGps();
         afficher();
-        setInterval(afficher, 10000); 
+        setInterval(afficher, 1000);
     });
 </script>
 </body>

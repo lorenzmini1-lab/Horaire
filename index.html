@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Tournée Dynamique v3.2</title>
+    <title>Ma Tournée Dynamique v3.6</title>
     <style>
         :root {
             --accent: #ffcc00;
@@ -17,7 +17,7 @@
             --card-bg: #111;
             --text: #fff;
             --border: #222;
-            --modal-overlay: rgba(0,0,0,0.85);
+            --modal-overlay: rgba(0,0,0,0.9);
         }
 
         body.light-mode {
@@ -25,12 +25,28 @@
             --card-bg: #ffffff;
             --text: #000;
             --border: #ddd;
-            --modal-overlay: rgba(0,0,0,0.5);
+            --modal-overlay: rgba(255,255,255,0.95);
         }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; transition: background 0.3s; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; transition: background 0.3s; overflow-x: hidden; }
         .app { max-width: 600px; margin: auto; }
         
+        /* MODAL DEMARRAGE ADAPTATIF */
+        #modalStart {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: var(--bg); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 2000;
+            text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        .logo-start { font-size: 4em; margin-bottom: 20px; }
+        .btn-start { 
+            background: var(--accent); color: #000; border: none; 
+            padding: 20px 40px; border-radius: 50px; font-size: 1.2em; 
+            font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn-start:active { transform: scale(0.95); }
+
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
         .status-gps { flex-grow: 1; font-size: 0.85em; text-align: center; color: #000; background: var(--accent); padding: 12px; border-radius: 12px; font-weight: 800; }
         .btn-theme { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 12px; font-size: 1.2em; width: 45px; height: 45px; cursor: pointer; }
@@ -41,7 +57,7 @@
         .etape-haut { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         
         .heure-col { font-size: 1.1em; font-weight: 900; color: var(--accent); min-width: 60px; }
-        .temps-ecart { flex-grow: 1; font-weight: bold; text-align: center; font-size: 0.85em; padding: 8px; border-radius: 6px; }
+        .temps-ecart { flex-grow: 1; font-weight: bold; text-align: center; font-size: 0.85em; padding: 8px; border-radius: 6px; font-variant-numeric: tabular-nums; }
         .retard { color: var(--danger); background: rgba(255, 68, 68, 0.1); border: 1px solid var(--danger); } 
         .avance { color: var(--safe); background: rgba(0, 255, 0, 0.1); border: 1px solid var(--safe); }
         
@@ -54,33 +70,30 @@
         
         #customConfirm, #modalFin { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 2px solid var(--accent); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-confirm { background: var(--safe); color: white; flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
-        .btn-cancel { background: #444; color: white; flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; }
-
-        .form-ajout { background: var(--card-bg); border: 2px solid var(--accent); padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        .input-group { display: flex; gap: 5px; margin-bottom: 10px; }
-        input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; }
-        .btn-search { background: var(--info); color: #000; border: none; border-radius: 8px; padding: 0 15px; cursor: pointer; font-size: 1.2em; min-width: 50px; }
         
         .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
         #codeOutput { width: 100%; height: 150px; background: #000; color: #00ff00; font-size: 10px; margin-top: 10px; }
 
-        /* Style Historique */
         .historique-zone { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-top: 20px; }
-        .hist-item { font-size: 0.85em; padding: 5px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
-        .hist-heure { color: var(--accent); font-weight: bold; margin-right: 10px; }
+        .hist-item { font-size: 0.85em; padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
+        .hist-header { display: flex; justify-content: space-between; font-weight: bold; }
     </style>
 </head>
 <body class="dark-mode">
 
+<div id="modalStart">
+    <div class="logo-start">🚛</div>
+    <h1 style="color: var(--accent); margin-bottom: 10px;">BONJOUR !</h1>
+    <p style="margin-bottom: 30px; font-size: 0.9em; opacity: 0.8;">Es-tu prêt à commencer ta tournée ?</p>
+    <button class="btn-start" onclick="demarrerJournee()">DÉMARRER MA JOURNÉE</button>
+</div>
+
 <div id="customConfirm">
     <div class="modal-content" style="border-color: var(--danger);">
         <h3 style="margin-top:0; color: var(--danger);">⚠️ Supprimer ?</h3>
-        <p>Veux-tu vraiment retirer ce trajet de ta liste ?</p>
-        <div class="modal-btns">
-            <button class="btn-confirm" style="background: var(--danger);" id="confirmYes">OUI, SUPPRIMER</button>
-            <button class="btn-cancel" id="confirmNo">NON, GARDER</button>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button onclick="validerSuppression()" style="background:var(--danger); color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold;">OUI</button>
+            <button onclick="document.getElementById('customConfirm').style.display='none'" style="background:#444; color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold;">NON</button>
         </div>
     </div>
 </div>
@@ -88,12 +101,8 @@
 <div id="modalFin">
     <div class="modal-content">
         <h2 style="margin-top:0; color: var(--safe);">🏁 Tournée terminée !</h2>
-        <p>Bravo ! Toutes les étapes ont été validées.</p>
-        <p id="timerText">Fermeture dans 30s...</p>
-        <div class="modal-btns">
-            <button class="btn-confirm" onclick="fermerApplication()">QUITTER MAINTENANT</button>
-            <button class="btn-cancel" onclick="annulerFermeture()">RESTER ICI</button>
-        </div>
+        <p id="timerText">Fermeture dans 10s...</p>
+        <button class="btn-start" style="padding:10px 20px; font-size:0.9em" onclick="annulerFermeture()">RESTER ICI</button>
     </div>
 </div>
 
@@ -103,34 +112,24 @@
         <button class="btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
     
-    <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="toggleForm()">➕ AJOUTER UNE ÉTAPE</button>
+    <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="toggleForm()">➕ AJOUTER ÉTAPE</button>
 
-    <div id="formEtape" class="form-ajout" style="display: none;">
-        <h3 id="formTitle" style="margin:0 0 15px 0; color:var(--accent)">Configuration Étape</h3>
+    <div id="formEtape" class="form-ajout" style="display: none; background:var(--card-bg); padding:20px; border-radius:15px; border:1px solid var(--accent); margin-bottom:15px;">
         <input type="hidden" id="editIndex">
         <input type="time" id="newHeure" style="margin-bottom:10px">
-        
-        <div class="input-group">
-            <input type="text" id="newGps" placeholder="Rue, Ville...">
-            <button class="btn-search" onclick="rechercherAdresse()" type="button">🔍</button>
-        </div>
-        
+        <input type="text" id="newGps" placeholder="Coordonnées ou Adresse" style="margin-bottom:10px">
         <select id="newLabel" style="margin-bottom:10px">
             <option value="MATIN">MATIN</option>
             <option value="APRÈS-MIDI">APRÈS-MIDI</option>
         </select>
-        
-        <div style="display:flex; gap:10px;">
-            <button class="btn-save" style="background:var(--safe)" onclick="sauvegarderEtape()">ENREGISTRER</button>
-            <button class="btn-save" style="background:#444" onclick="toggleForm()">ANNULER</button>
-        </div>
+        <button class="btn-save" style="background:var(--safe)" onclick="sauvegarderEtape()">ENREGISTRER</button>
     </div>
 
     <div id="listeTournee"></div>
     
     <div class="historique-zone">
-        <h4 style="margin-top:0; color:var(--info)">📜 HISTORIQUE</h4>
-        <div id="logs" style="max-height: 120px; overflow-y: auto;"></div>
+        <h4 style="margin-top:0; color:var(--info)">📜 RÉCAPITULATIF DES PASSAGES</h4>
+        <div id="logs" style="max-height: 200px; overflow-y: auto;"></div>
     </div>
 
     <div style="margin-top:30px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
@@ -183,8 +182,14 @@
     let etapes = [];
     let maPositionActuelle = null;
     let indexASupprimer = null;
-    let timerFin = null;
-    let compteARebours = 30;
+    let timerFinActive = false;
+    let compteARebours = 10;
+    let intervalId = null;
+
+    function demarrerJournee() {
+        document.getElementById('modalStart').style.display = 'none';
+        demarrerGps();
+    }
 
     function initTheme() {
         const saved = localStorage.getItem('themePref');
@@ -197,36 +202,32 @@
         localStorage.setItem('themePref', document.body.className);
     }
 
-    // FONCTION HISTORIQUE
-    function ajouterLog(msg) {
+    function ajouterLogPassage(etape, auto) {
         const logBox = document.getElementById('logs');
         const now = new Date();
         const timeStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+        const res = etape.ecartFinal;
         const item = document.createElement('div');
         item.className = 'hist-item';
-        item.innerHTML = `<span class="hist-heure">[${timeStr}]</span> <span>${msg}</span>`;
+        item.innerHTML = `<div class="hist-header"><span class="hist-heure">📍 ${etape.hPrevue}</span><span class="hist-badge ${res.classe}">${res.texte}</span></div>
+                          <div style="font-size:0.8em;color:#aaa">Passé à ${timeStr} (${auto ? '🤖 Auto' : '🖐️ Manuel'})</div>`;
         logBox.prepend(item);
+        const hist = JSON.parse(localStorage.getItem('logsTournee') || "[]");
+        hist.unshift({ hP: etape.hPrevue, hR: timeStr, ecart: res.texte, cl: res.classe, methode: auto });
+        localStorage.setItem('logsTournee', JSON.stringify(hist.slice(0, 50)));
     }
 
-    async function rechercherAdresse() {
-        const input = document.getElementById('newGps');
-        const query = input.value.trim();
-        const btn = document.querySelector('.btn-search');
-        if (!query) return;
-        btn.innerText = "⌛";
-        try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-            const data = await response.json();
-            if (data && data.length > 0) {
-                input.value = `${parseFloat(data[0].lat).toFixed(7)}, ${parseFloat(data[0].lon).toFixed(7)}`;
-                btn.innerText = "✅";
-                ajouterLog(`Adresse trouvée : ${query}`);
-            } else {
-                alert("Adresse introuvable.");
-                btn.innerText = "❌";
-            }
-        } catch (e) { btn.innerText = "🔍"; }
-        finally { setTimeout(() => btn.innerText = "🔍", 3000); }
+    function chargerLogsSauvegardes() {
+        const hist = JSON.parse(localStorage.getItem('logsTournee') || "[]");
+        const logBox = document.getElementById('logs');
+        logBox.innerHTML = "";
+        hist.forEach(h => {
+            const item = document.createElement('div');
+            item.className = 'hist-item';
+            item.innerHTML = `<div class="hist-header"><span class="hist-heure">📍 ${h.hP}</span><span class="hist-badge ${h.cl}">${h.ecart}</span></div>
+                              <div style="font-size:0.8em;color:#aaa">Passé à ${h.hR} (${h.methode ? '🤖 Auto' : '🖐️ Manuel'})</div>`;
+            logBox.appendChild(item);
+        });
     }
 
     function chargerMaster() {
@@ -245,50 +246,24 @@
             document.getElementById('newHeure').value = etapes[idx].hPrevue;
             document.getElementById('newGps').value = etapes[idx].gps;
             document.getElementById('newLabel').value = etapes[idx].label;
-        } else {
-            document.getElementById('editIndex').value = "";
-            document.getElementById('newGps').value = "";
         }
     }
 
     function sauvegarderEtape() {
         const h = document.getElementById('newHeure').value, g = document.getElementById('newGps').value, l = document.getElementById('newLabel').value, idx = document.getElementById('editIndex').value;
         if (!h || !g) return;
-        const obj = { hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null };
-        if (idx !== "") {
-            etapes[idx] = { ...etapes[idx], ...obj };
-            ajouterLog(`Modifié : ${h}`);
-        } else {
-            etapes.push(obj);
-            etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue));
-            ajouterLog(`Ajouté : ${h}`);
-        }
-        calculerToutesLesDistances();
+        if (idx !== "") etapes[idx] = { ...etapes[idx], hPrevue: h, gps: g, label: l };
+        else { etapes.push({ hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null }); etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue)); }
         save(); toggleForm(); afficher();
     }
 
-    function demanderSuppression(idx) {
-        indexASupprimer = idx;
-        document.getElementById('customConfirm').style.display = 'flex';
-    }
-
-    document.getElementById('confirmYes').onclick = () => {
-        if(indexASupprimer !== null) {
-            ajouterLog(`Supprimé : ${etapes[indexASupprimer].hPrevue}`);
-            etapes.splice(indexASupprimer, 1);
-            save();
-            afficher();
-        }
-        document.getElementById('customConfirm').style.display = 'none';
-    };
-
-    document.getElementById('confirmNo').onclick = () => { document.getElementById('customConfirm').style.display = 'none'; };
+    function validerSuppression() { if(indexASupprimer !== null) { etapes.splice(indexASupprimer, 1); save(); afficher(); } document.getElementById('customConfirm').style.display = 'none'; }
 
     function demarrerGps() {
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition((pos) => {
                 maPositionActuelle = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                document.getElementById('statusGps').innerText = `📡 GPS OK (${Math.round(pos.coords.accuracy)}m)`;
+                document.getElementById('statusGps').innerText = `📡 GPS OK`;
                 calculerToutesLesDistances();
             }, null, { enableHighAccuracy: true });
         }
@@ -303,78 +278,62 @@
 
     function calculerToutesLesDistances() {
         if (!maPositionActuelle) return;
-        const heureActuelle = new Date().getHours();
+        const hAct = new Date().getHours();
         etapes.forEach((etape, i) => {
             if (etape.fait) return;
-            const estMatin = etape.label === "MATIN";
-            const bonCreneau = estMatin ? (heureActuelle < 13) : (heureActuelle >= 13);
-            if (!bonCreneau) { etapes[i].dist = null; return; }
+            const bonCr = (etape.label === "MATIN") ? (hAct < 13) : (hAct >= 13);
+            if (!bonCr) { etapes[i].dist = null; return; }
             const c = etape.gps.split(',').map(parseFloat);
-            if (c.length === 2 && !isNaN(c[0]) && !isNaN(c[1])) {
+            if (c.length === 2) {
                 const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, c[0], c[1]);
                 etapes[i].dist = d;
                 if (d < 50) validerEtMasquer(i, true);
             }
         });
-        verifierFinDeTournee(heureActuelle);
-        afficher();
+        verifierFin(hAct);
     }
 
     function validerEtMasquer(i, auto = false) {
         if (!etapes[i].fait) {
             etapes[i].ecartFinal = calculerEcart(etapes[i].hPrevue);
             etapes[i].fait = true;
-            ajouterLog(`${auto ? '🤖 Auto' : '🖐️ Manuel'} : Terminé ${etapes[i].hPrevue}`);
+            ajouterLogPassage(etapes[i], auto);
             save();
             setTimeout(() => { etapes[i].cachee = true; afficher(); }, 4000);
             afficher();
         }
     }
 
-    function verifierFinDeTournee(heureActuelle) {
-        const creneau = heureActuelle < 13 ? "MATIN" : "APRÈS-MIDI";
-        const etapesDuCreneau = etapes.filter(e => e.label === creneau);
-        const toutesFaites = etapesDuCreneau.length > 0 && etapesDuCreneau.every(e => e.fait);
-        
-        if (toutesFaites && !timerFin) {
-            ajouterLog(`🏁 Fin de la tournée détectée.`);
-            setTimeout(declencherPopUpFin, 5000);
-            timerFin = true;
+    function verifierFin(hAct) {
+        const cr = hAct < 13 ? "MATIN" : "APRÈS-MIDI";
+        const etDuCr = etapes.filter(e => e.label === cr);
+        if (etDuCr.length > 0 && etDuCr.every(e => e.fait) && !timerFinActive) {
+            timerFinActive = true;
+            setTimeout(() => { document.getElementById('modalFin').style.display = 'flex'; demarrerTimerFin(); }, 2000);
         }
     }
 
-    function declencherPopUpFin() {
-        document.getElementById('modalFin').style.display = 'flex';
-        const inter = setInterval(() => {
+    function demarrerTimerFin() {
+        compteARebours = 10;
+        intervalId = setInterval(() => {
             compteARebours--;
             document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
-            if(compteARebours <= 0) { clearInterval(inter); fermerApplication(); }
+            if(compteARebours <= 0) { clearInterval(intervalId); window.close(); }
         }, 1000);
     }
 
-    function annulerFermeture() {
-        document.getElementById('modalFin').style.display = 'none';
-        compteARebours = 30; 
-    }
-
-    function fermerApplication() {
-        window.close();
-        setTimeout(() => {
-            document.querySelector('#modalFin h2').innerText = "Fermeture requise";
-            document.getElementById('timerText').innerText = "Veuillez fermer cet onglet manuellement.";
-        }, 500);
-    }
+    function annulerFermeture() { document.getElementById('modalFin').style.display = 'none'; if(intervalId) clearInterval(intervalId); }
 
     function calculerEcart(hPrevue) {
         const maintenant = new Date(), [h, m] = hPrevue.split(':').map(Number), cible = new Date();
         cible.setHours(h, m, 0, 0);
         const diff = maintenant - cible;
-        const totalSecAbs = Math.floor(Math.abs(diff) / 1000);
-        const hrs = Math.floor(totalSecAbs / 3600), min = Math.floor((totalSecAbs % 3600) / 60), sec = totalSecAbs % 60;
-        let texte = diff > 0 ? "+" : "-";
-        if (hrs > 0) texte += `${hrs}h ${min}m ${sec}s`;
-        else texte += `${min}m ${sec}s`;
-        return { texte: texte, classe: diff > 0 ? "retard" : "avance" };
+        const absSec = Math.floor(Math.abs(diff) / 1000);
+        const hrs = Math.floor(absSec / 3600), min = Math.floor((absSec % 3600) / 60), sec = absSec % 60;
+        let txt = diff > 0 ? "+" : "-";
+        if (hrs > 0) txt += `${hrs}h ${min}m ${sec}s`;
+        else txt += `${min}m ${sec}s`;
+        return { texte: txt, classe: diff > 0 ? "retard" : "avance" };
     }
 
     function afficher() {
@@ -391,38 +350,35 @@
             const res = etape.ecartFinal || calculerEcart(etape.hPrevue);
             const div = document.createElement('div');
             div.className = `ligne-etape ${etape.fait ? 'fait-visuel' : ''}`;
-            div.innerHTML = `
-                <div class="etape-haut">
-                    <span class="heure-col">${etape.hPrevue}</span>
-                    <span class="temps-ecart ${res.classe}">${res.texte}</span>
-                    <button class="btn-ok" onclick="validerEtMasquer(${idx})">${etape.fait ? '✓' : 'OK'}</button>
-                    <button class="btn-edit" onclick="toggleForm(${idx})">✏️</button>
-                    <button class="btn-delete" onclick="demanderSuppression(${idx})">×</button>
-                </div>
-                ${etape.dist !== null ? `<div class="dist-live">📍 À ${etape.dist}m</div>` : ""}
-            `;
+            div.innerHTML = `<div class="etape-haut">
+                <span class="heure-col">${etape.hPrevue}</span>
+                <span class="temps-ecart ${res.classe}">${res.texte}</span>
+                <button class="btn-ok" onclick="validerEtMasquer(${idx})">${etape.fait ? '✓' : 'OK'}</button>
+                <button class="btn-edit" onclick="toggleForm(${idx})">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(${idx})">×</button>
+            </div>
+            ${etape.dist !== null ? `<div class="dist-live">📍 À ${etape.dist}m</div>` : ""}`;
             liste.appendChild(div);
         });
     }
 
     function genererNouveauCode() {
-        const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-        const newMasterData = etapes.map(e => ({ h: e.hPrevue, gps: e.gps, label: e.label }));
-        const updatedHtml = fullHtml.replace(/const LISTE_MASTER = \[[\s\S]*?\];/, `const LISTE_MASTER = ${JSON.stringify(newMasterData, null, 8)};`);
-        document.getElementById('codeOutput').value = updatedHtml;
+        const clean = etapes.map(e => ({ h: e.hPrevue, gps: e.gps, label: e.label }));
+        let html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        html = html.replace(/const LISTE_MASTER = \[[\s\S]*?\];/, `const LISTE_MASTER = ${JSON.stringify(clean, null, 8)};`);
+        document.getElementById('codeOutput').value = html;
         document.getElementById('zoneExport').style.display = 'block';
     }
 
     function copierCode() { document.getElementById('codeOutput').select(); document.execCommand("copy"); alert("Copié !"); }
-    function forcerReset() { if(confirm("Réinitialiser ?")) { etapes = chargerMaster(); ajouterLog("RESET MASTER EFFECTUÉ"); afficher(); } }
+    function forcerReset() { if(confirm("Réinitialiser ?")) { localStorage.removeItem('logsTournee'); etapes = chargerMaster(); location.reload(); } }
 
     document.addEventListener('DOMContentLoaded', () => {
         initTheme();
         const saved = localStorage.getItem('maTournee_v2');
         etapes = (saved && saved !== "[]") ? JSON.parse(saved) : chargerMaster();
-        demarrerGps();
+        chargerLogsSauvegardes();
         afficher();
-        ajouterLog("Application démarrée");
         setInterval(afficher, 1000);
     });
 </script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Tournée Dynamique v3.6</title>
+    <title>Ma Tournée Dynamique v3.7</title>
     <style>
         :root {
             --accent: #ffcc00;
@@ -188,6 +188,7 @@
 
     function demarrerJournee() {
         document.getElementById('modalStart').style.display = 'none';
+        localStorage.setItem('tourneeDemarree', 'true'); // MÉMORISATION DU CLIC
         demarrerGps();
     }
 
@@ -318,7 +319,11 @@
         intervalId = setInterval(() => {
             compteARebours--;
             document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
-            if(compteARebours <= 0) { clearInterval(intervalId); window.close(); }
+            if(compteARebours <= 0) { 
+                clearInterval(intervalId); 
+                localStorage.removeItem('tourneeDemarree'); // RÉINIT POUR DEMAIN
+                window.close(); 
+            }
         }, 1000);
     }
 
@@ -371,10 +376,23 @@
     }
 
     function copierCode() { document.getElementById('codeOutput').select(); document.execCommand("copy"); alert("Copié !"); }
-    function forcerReset() { if(confirm("Réinitialiser ?")) { localStorage.removeItem('logsTournee'); etapes = chargerMaster(); location.reload(); } }
+    function forcerReset() { if(confirm("Réinitialiser ?")) { 
+        localStorage.removeItem('logsTournee'); 
+        localStorage.removeItem('tourneeDemarree'); 
+        etapes = chargerMaster(); location.reload(); 
+    } }
+
+    function demanderSuppression(idx) { indexASupprimer = idx; document.getElementById('customConfirm').style.display = 'flex'; }
 
     document.addEventListener('DOMContentLoaded', () => {
         initTheme();
+        
+        // VÉRIFIER SI LA JOURNÉE A DÉJÀ ÉTÉ DÉMARRÉE
+        if (localStorage.getItem('tourneeDemarree') === 'true') {
+            document.getElementById('modalStart').style.display = 'none';
+            demarrerGps();
+        }
+
         const saved = localStorage.getItem('maTournee_v2');
         etapes = (saved && saved !== "[]") ? JSON.parse(saved) : chargerMaster();
         chargerLogsSauvegardes();

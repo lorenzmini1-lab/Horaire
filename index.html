@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ma Tournée Dynamique v3.7</title>
@@ -81,7 +80,7 @@
 </head>
 <body class="dark-mode">
 
-<div id="modalStart">
+<div id="modalStart" style="display: none;">
     <div class="logo-start">🚛</div>
     <h1 style="color: var(--accent); margin-bottom: 10px;">BONJOUR !</h1>
     <p style="margin-bottom: 30px; font-size: 0.9em; opacity: 0.8;">Es-tu prêt à commencer ta tournée ?</p>
@@ -108,14 +107,14 @@
 
 <div class="app">
     <div class="header-controls">
-        <div class="status-gps" id="statusGps">🛰️ RECHERCHE GPS...</div>
+        <div class="status-gps" id="statusGps">📡 GPS OK</div>
         <button class="btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
     
     <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="toggleForm()">➕ AJOUTER ÉTAPE</button>
 
-    <div id="formEtape" class="form-ajout" style="display: none; background:var(--card-bg); padding:20px; border-radius:15px; border:1px solid var(--accent); margin-bottom:15px;">
-        <input type="hidden" id="editIndex">
+    <div id="formEtape" class="form-ajout" style="display: none; background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--accent); margin-bottom: 15px;">
+        <input type="hidden" id="editIndex" value="14">
         <input type="time" id="newHeure" style="margin-bottom:10px">
         <input type="text" id="newGps" placeholder="Coordonnées ou Adresse" style="margin-bottom:10px">
         <select id="newLabel" style="margin-bottom:10px">
@@ -125,7 +124,238 @@
         <button class="btn-save" style="background:var(--safe)" onclick="sauvegarderEtape()">ENREGISTRER</button>
     </div>
 
-    <div id="listeTournee"></div>
+    <div id="listeTournee"><div class="separateur">☀️ MATIN</div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:20</span>
+                <span class="temps-ecart avance">-1h 35m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(0)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(0)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(0)">×</button>
+            </div>
+            <div class="dist-live">📍 À 14085m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:25</span>
+                <span class="temps-ecart avance">-1h 40m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(1)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(1)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(1)">×</button>
+            </div>
+            <div class="dist-live">📍 À 14637m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:28</span>
+                <span class="temps-ecart avance">-1h 43m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(2)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(2)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(2)">×</button>
+            </div>
+            <div class="dist-live">📍 À 15117m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:32</span>
+                <span class="temps-ecart avance">-1h 47m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(3)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(3)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(3)">×</button>
+            </div>
+            <div class="dist-live">📍 À 14464m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:36</span>
+                <span class="temps-ecart avance">-1h 51m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(4)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(4)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(4)">×</button>
+            </div>
+            <div class="dist-live">📍 À 14971m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:37</span>
+                <span class="temps-ecart avance">-1h 52m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(5)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(5)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(5)">×</button>
+            </div>
+            <div class="dist-live">📍 À 15073m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:39</span>
+                <span class="temps-ecart avance">-1h 54m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(6)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(6)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(6)">×</button>
+            </div>
+            <div class="dist-live">📍 À 15290m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:40</span>
+                <span class="temps-ecart avance">-1h 55m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(7)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(7)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(7)">×</button>
+            </div>
+            <div class="dist-live">📍 À 15844m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:42</span>
+                <span class="temps-ecart avance">-1h 57m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(8)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(8)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(8)">×</button>
+            </div>
+            <div class="dist-live">📍 À 15923m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:44</span>
+                <span class="temps-ecart avance">-1h 59m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(9)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(9)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(9)">×</button>
+            </div>
+            <div class="dist-live">📍 À 16176m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:47</span>
+                <span class="temps-ecart avance">-2h 2m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(10)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(10)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(10)">×</button>
+            </div>
+            <div class="dist-live">📍 À 16496m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:50</span>
+                <span class="temps-ecart avance">-2h 5m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(11)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(11)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(11)">×</button>
+            </div>
+            <div class="dist-live">📍 À 16296m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:51</span>
+                <span class="temps-ecart avance">-2h 6m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(12)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(12)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(12)">×</button>
+            </div>
+            <div class="dist-live">📍 À 16659m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:51</span>
+                <span class="temps-ecart avance">-2h 6m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(13)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(13)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(13)">×</button>
+            </div>
+            <div class="dist-live">📍 À 16743m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">07:52</span>
+                <span class="temps-ecart avance">-2h 7m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(14)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(14)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(14)">×</button>
+            </div>
+            <div class="dist-live">📍 À 17043m</div></div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">08:25</span>
+                <span class="temps-ecart avance">-2h 40m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(15)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(15)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(15)">×</button>
+            </div>
+            <div class="dist-live">📍 À 18745m</div></div><div class="separateur">🌙 APRÈS-MIDI</div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">15:50</span>
+                <span class="temps-ecart avance">-10h 5m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(16)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(16)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(16)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:02</span>
+                <span class="temps-ecart avance">-10h 17m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(17)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(17)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(17)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:03</span>
+                <span class="temps-ecart avance">-10h 18m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(18)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(18)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(18)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:04</span>
+                <span class="temps-ecart avance">-10h 19m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(19)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(19)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(19)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:05</span>
+                <span class="temps-ecart avance">-10h 20m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(20)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(20)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(20)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:06</span>
+                <span class="temps-ecart avance">-10h 21m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(21)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(21)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(21)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:08</span>
+                <span class="temps-ecart avance">-10h 23m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(22)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(22)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(22)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:14</span>
+                <span class="temps-ecart avance">-10h 29m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(23)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(23)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(23)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:17</span>
+                <span class="temps-ecart avance">-10h 32m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(24)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(24)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(24)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:20</span>
+                <span class="temps-ecart avance">-10h 35m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(25)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(25)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(25)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:23</span>
+                <span class="temps-ecart avance">-10h 38m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(26)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(26)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(26)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:26</span>
+                <span class="temps-ecart avance">-10h 41m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(27)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(27)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(27)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:27</span>
+                <span class="temps-ecart avance">-10h 42m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(28)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(28)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(28)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:30</span>
+                <span class="temps-ecart avance">-10h 45m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(29)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(29)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(29)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:34</span>
+                <span class="temps-ecart avance">-10h 49m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(30)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(30)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(30)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:40</span>
+                <span class="temps-ecart avance">-10h 55m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(31)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(31)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(31)">×</button>
+            </div>
+            </div><div class="ligne-etape "><div class="etape-haut">
+                <span class="heure-col">16:48</span>
+                <span class="temps-ecart avance">-11h 3m 13s</span>
+                <button class="btn-ok" onclick="validerEtMasquer(32)">OK</button>
+                <button class="btn-edit" onclick="toggleForm(32)">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(32)">×</button>
+            </div>
+            </div></div>
     
     <div class="historique-zone">
         <h4 style="margin-top:0; color:var(--info)">📜 RÉCAPITULATIF DES PASSAGES</h4>
@@ -135,7 +365,7 @@
     <div style="margin-top:30px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
         <button class="btn-save" onclick="genererNouveauCode()">⚙️ GÉNÉRER CODE GITHUB</button>
         <div id="zoneExport" style="display:none">
-            <textarea id="codeOutput" readonly></textarea>
+            <textarea id="codeOutput" readonly=""></textarea>
             <button class="btn-save" style="background:var(--safe); margin-top:10px;" onclick="copierCode()">📋 COPIER LE CODE</button>
         </div>
         <button onclick="forcerReset()" style="background:none; color:#666; border:none; width:100%; margin-top:15px; font-size:0.8em; text-decoration:underline">Réinitialiser Master</button>
@@ -144,40 +374,172 @@
 
 <script>
     const LISTE_MASTER = [
-        { h: "07:25", gps: "50.7826858, 4.3399798", label: "MATIN" },
-        { h: "07:30", gps: "50.7885291, 4.3414057", label: "MATIN" },
-        { h: "07:33", gps: "50.7942730, 4.3412415", label: "MATIN" },
-        { h: "07:37", gps: "50.7787243, 4.3540467", label: "MATIN" },
-        { h: "07:41", gps: "50.7828007, 4.3578604", label: "MATIN" },
-        { h: "07:42", gps: "50.7823892, 4.3604944", label: "MATIN" },
-        { h: "07:44", gps: "50.7810071, 4.3666949", label: "MATIN" },
-        { h: "07:45", gps: "50.7833575, 4.3739386", label: "MATIN" },
-        { h: "07:46", gps: "50.7869441, 4.3703220", label: "MATIN" },
-        { h: "07:49", gps: "50.7886495, 4.3727225", label: "MATIN" },
-        { h: "07:52", gps: "50.7928772, 4.3726273", label: "MATIN" },
-        { h: "07:55", gps: "50.7936972, 4.3673065", label: "MATIN" },
-        { h: "07:56", gps: "50.7947988, 4.3728841", label: "MATIN" },
-        { h: "07:56", gps: "50.7954049, 4.3736211", label: "MATIN" },
-        { h: "07:57", gps: "50.7978734, 4.3757447", label: "MATIN" },
-        { h: "08:25", gps: "50.7910066, 4.4172985", label: "MATIN" },
-        { h: "15:50", gps: "50.7910066, 4.4172985", label: "APRÈS-MIDI" },
-        { h: "16:02", gps: "50.7986269, 4.3755851", label: "APRÈS-MIDI" },
-        { h: "16:03", gps: "50.7980270, 4.3755382", label: "APRÈS-MIDI" },
-        { h: "16:04", gps: "50.7953786, 4.3735383", label: "APRÈS-MIDI" },
-        { h: "16:05", gps: "50.7947963, 4.3728158", label: "APRÈS-MIDI" },
-        { h: "16:06", gps: "50.7936925, 4.3672435", label: "APRÈS-MIDI" },
-        { h: "16:08", gps: "50.7928804, 4.3725583", label: "APRÈS-MIDI" },
-        { h: "16:14", gps: "50.7887235, 4.3721915", label: "APRÈS-MIDI" },
-        { h: "16:17", gps: "50.7873776, 4.3714844", label: "APRÈS-MIDI" },
-        { h: "16:20", gps: "50.7833563, 4.3738662", label: "APRÈS-MIDI" },
-        { h: "16:23", gps: "50.7810276, 4.3666071", label: "APRÈS-MIDI" },
-        { h: "16:26", gps: "50.7823657, 4.3605855", label: "APRÈS-MIDI" },
-        { h: "16:27", gps: "50.7827827, 4.3578188", label: "APRÈS-MIDI" },
-        { h: "16:30", gps: "50.7786227, 4.3545197", label: "APRÈS-MIDI" },
-        { h: "16:34", gps: "50.7826023, 4.3401699", label: "APRÈS-MIDI" },
-        { h: "16:40", gps: "50.7885234, 4.3414383", label: "APRÈS-MIDI" },
-        { h: "16:48", gps: "50.7938468, 4.3399805", label: "APRÈS-MIDI" }
-    ];
+        {
+                "h": "07:20",
+                "gps": "50.7826858, 4.3399798",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:25",
+                "gps": "50.7885291, 4.3414057",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:28",
+                "gps": "50.7942730, 4.3412415",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:32",
+                "gps": "50.7787243, 4.3540467",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:36",
+                "gps": "50.7828007, 4.3578604",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:37",
+                "gps": "50.7823892, 4.3604944",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:39",
+                "gps": "50.7810071, 4.3666949",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:40",
+                "gps": "50.7833575, 4.3739386",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:42",
+                "gps": "50.7869441, 4.3703220",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:44",
+                "gps": "50.7886495, 4.3727225",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:47",
+                "gps": "50.7928772, 4.3726273",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:50",
+                "gps": "50.7936972, 4.3673065",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:51",
+                "gps": "50.7947988, 4.3728841",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:51",
+                "gps": "50.7954049, 4.3736211",
+                "label": "MATIN"
+        },
+        {
+                "h": "07:52",
+                "gps": "50.7978734, 4.3757447",
+                "label": "MATIN"
+        },
+        {
+                "h": "08:25",
+                "gps": "50.7910066, 4.4172985",
+                "label": "MATIN"
+        },
+        {
+                "h": "15:50",
+                "gps": "50.7910066, 4.4172985",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:02",
+                "gps": "50.7986269, 4.3755851",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:03",
+                "gps": "50.7980270, 4.3755382",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:04",
+                "gps": "50.7953786, 4.3735383",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:05",
+                "gps": "50.7947963, 4.3728158",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:06",
+                "gps": "50.7936925, 4.3672435",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:08",
+                "gps": "50.7928804, 4.3725583",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:14",
+                "gps": "50.7887235, 4.3721915",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:17",
+                "gps": "50.7873776, 4.3714844",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:20",
+                "gps": "50.7833563, 4.3738662",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:23",
+                "gps": "50.7810276, 4.3666071",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:26",
+                "gps": "50.7823657, 4.3605855",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:27",
+                "gps": "50.7827827, 4.3578188",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:30",
+                "gps": "50.7786227, 4.3545197",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:34",
+                "gps": "50.7826023, 4.3401699",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:40",
+                "gps": "50.7885234, 4.3414383",
+                "label": "APRÈS-MIDI"
+        },
+        {
+                "h": "16:48",
+                "gps": "50.7938468, 4.3399805",
+                "label": "APRÈS-MIDI"
+        }
+];
 
     let etapes = [];
     let maPositionActuelle = null;
@@ -400,5 +762,6 @@
         setInterval(afficher, 1000);
     });
 </script>
-</body>
-</html>
+
+
+</body></html>

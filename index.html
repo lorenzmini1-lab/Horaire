@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Tournée Dynamique v3.8</title>
+    <title>Ma Tournée Dynamique v3.9</title>
     <style>
         :root {
             --accent: #ffcc00;
@@ -72,9 +72,13 @@
         .dist-live { font-size: 0.85em; margin-top: 10px; color: var(--info); font-weight: 600; }
         .fait-visuel { opacity: 0.3; transform: scale(0.98); border-left-color: var(--safe); }
         
-        #customConfirm, #modalFin { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
+        /* MODALS */
+        #customConfirm, #modalFin, #modalEdit { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 2px solid var(--accent); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
+        /* INPUTS MODAL */
+        .input-modal { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1em; box-sizing: border-box; }
+
         .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
         #codeOutput { width: 100%; height: 150px; background: #000; color: #00ff00; font-size: 10px; margin-top: 10px; }
 
@@ -110,6 +114,23 @@
     </div>
 </div>
 
+<div id="modalEdit">
+    <div class="modal-content">
+        <h3 id="titreModalEdit" style="margin-top:0; color: var(--accent); margin-bottom: 20px;">✏️ Étape</h3>
+        <input type="hidden" id="editIndex">
+        <input type="time" id="newHeure" class="input-modal">
+        <input type="text" id="newGps" placeholder="Coordonnées ou Adresse" class="input-modal">
+        <select id="newLabel" class="input-modal">
+            <option value="MATIN">MATIN</option>
+            <option value="APRÈS-MIDI">APRÈS-MIDI</option>
+        </select>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-save" style="background:var(--safe); flex:1;" onclick="sauvegarderEtape()">ENREGISTRER</button>
+            <button class="btn-save" style="background:#444; flex:1;" onclick="fermerModalEdit()">ANNULER</button>
+        </div>
+    </div>
+</div>
+
 <div class="app">
     <div class="header-controls">
         <div class="status-gps" id="statusGps">🛰️ RECHERCHE GPS...</div>
@@ -117,18 +138,7 @@
         <button class="btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
     
-    <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="toggleForm()">➕ AJOUTER ÉTAPE</button>
-
-    <div id="formEtape" class="form-ajout" style="display: none; background:var(--card-bg); padding:20px; border-radius:15px; border:1px solid var(--accent); margin-bottom:15px;">
-        <input type="hidden" id="editIndex">
-        <input type="time" id="newHeure" style="margin-bottom:10px">
-        <input type="text" id="newGps" placeholder="Coordonnées ou Adresse" style="margin-bottom:10px">
-        <select id="newLabel" style="margin-bottom:10px">
-            <option value="MATIN">MATIN</option>
-            <option value="APRÈS-MIDI">APRÈS-MIDI</option>
-        </select>
-        <button class="btn-save" style="background:var(--safe)" onclick="sauvegarderEtape()">ENREGISTRER</button>
-    </div>
+    <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="ouvrirModalEdit(-1)">➕ AJOUTER ÉTAPE</button>
 
     <div id="listeTournee"></div>
     
@@ -333,7 +343,7 @@
 
     function demarrerJournee() {
         document.getElementById('modalStart').style.display = 'none';
-        localStorage.setItem('tourneeDemarree', 'true'); // MÉMORISATION DU CLIC
+        localStorage.setItem('tourneeDemarree', 'true');
         demarrerGps();
     }
 
@@ -384,26 +394,56 @@
 
     function save() { localStorage.setItem('maTournee_v2', JSON.stringify(etapes)); }
 
-    function toggleForm(idx = -1) {
-        const f = document.getElementById('formEtape');
-        f.style.display = (f.style.display === 'none' || idx >= 0) ? 'block' : 'none';
+    function ouvrirModalEdit(idx = -1) {
+        document.getElementById('modalEdit').style.display = 'flex';
+        const titre = document.getElementById('titreModalEdit');
         if (idx >= 0) {
+            titre.innerText = "✏️ Modifier l'étape";
             document.getElementById('editIndex').value = idx;
             document.getElementById('newHeure').value = etapes[idx].hPrevue;
             document.getElementById('newGps').value = etapes[idx].gps;
             document.getElementById('newLabel').value = etapes[idx].label;
+        } else {
+            titre.innerText = "➕ Ajouter une étape";
+            document.getElementById('editIndex').value = "";
+            document.getElementById('newHeure').value = "";
+            document.getElementById('newGps').value = "";
+            document.getElementById('newLabel').value = "MATIN";
         }
     }
 
-    function sauvegarderEtape() {
-        const h = document.getElementById('newHeure').value, g = document.getElementById('newGps').value, l = document.getElementById('newLabel').value, idx = document.getElementById('editIndex').value;
-        if (!h || !g) return;
-        if (idx !== "") etapes[idx] = { ...etapes[idx], hPrevue: h, gps: g, label: l };
-        else { etapes.push({ hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null }); etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue)); }
-        save(); toggleForm(); afficher();
+    function fermerModalEdit() {
+        document.getElementById('modalEdit').style.display = 'none';
     }
 
-    function validerSuppression() { if(indexASupprimer !== null) { etapes.splice(indexASupprimer, 1); save(); afficher(); } document.getElementById('customConfirm').style.display = 'none'; }
+    function sauvegarderEtape() {
+        const h = document.getElementById('newHeure').value;
+        const g = document.getElementById('newGps').value;
+        const l = document.getElementById('newLabel').value;
+        const idx = document.getElementById('editIndex').value;
+        
+        if (!h || !g) return;
+        
+        if (idx !== "") {
+            etapes[idx] = { ...etapes[idx], hPrevue: h, gps: g, label: l };
+        } else { 
+            etapes.push({ hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null }); 
+            etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue)); 
+        }
+        
+        save(); 
+        fermerModalEdit(); 
+        afficher();
+    }
+
+    function validerSuppression() { 
+        if(indexASupprimer !== null) { 
+            etapes.splice(indexASupprimer, 1); 
+            save(); 
+            afficher(); 
+        } 
+        document.getElementById('customConfirm').style.display = 'none'; 
+    }
 
     function demarrerGps() {
         if ("geolocation" in navigator) {
@@ -466,7 +506,7 @@
             document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
             if(compteARebours <= 0) { 
                 clearInterval(intervalId); 
-                localStorage.removeItem('tourneeDemarree'); // RÉINIT POUR DEMAIN
+                localStorage.removeItem('tourneeDemarree');
                 window.close(); 
             }
         }, 1000);
@@ -504,7 +544,7 @@
                 <span class="heure-col">${etape.hPrevue}</span>
                 <span class="temps-ecart ${res.classe}">${res.texte}</span>
                 <button class="btn-ok" onclick="validerEtMasquer(${idx})">${etape.fait ? '✓' : 'OK'}</button>
-                <button class="btn-edit" onclick="toggleForm(${idx})">✏️</button>
+                <button class="btn-edit" onclick="ouvrirModalEdit(${idx})">✏️</button>
                 <button class="btn-delete" onclick="demanderSuppression(${idx})">×</button>
             </div>
             ${etape.dist !== null ? `<div class="dist-live">📍 À ${etape.dist}m</div>` : ""}`;
@@ -535,7 +575,6 @@
         mettreAJourHorloge();
         setInterval(mettreAJourHorloge, 1000);
         
-        // VÉRIFIER SI LA JOURNÉE A DÉJÀ ÉTÉ DÉMARRÉE
         if (localStorage.getItem('tourneeDemarree') === 'true') {
             document.getElementById('modalStart').style.display = 'none';
             demarrerGps();

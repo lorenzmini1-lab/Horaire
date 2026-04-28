@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ma Tournée Dynamique v3.7</title>
+    <title>Ma Tournée Dynamique v3.8</title>
     <style>
         :root {
             --accent: #ffcc00;
@@ -49,6 +49,10 @@
 
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
         .status-gps { flex-grow: 1; font-size: 0.85em; text-align: center; color: #000; background: var(--accent); padding: 12px; border-radius: 12px; font-weight: 800; }
+        
+        /* HORLOGE */
+        .horloge-principale { font-size: 1.2em; font-weight: 900; color: var(--accent); background: var(--card-bg); padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); font-variant-numeric: tabular-nums; text-align: center; }
+        
         .btn-theme { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 12px; font-size: 1.2em; width: 45px; height: 45px; cursor: pointer; }
 
         .separateur { background: var(--card-bg); color: var(--accent); padding: 12px; text-align: center; font-weight: bold; border-radius: 8px; margin: 20px 0 10px 0; border: 1px solid var(--accent); }
@@ -109,6 +113,7 @@
 <div class="app">
     <div class="header-controls">
         <div class="status-gps" id="statusGps">🛰️ RECHERCHE GPS...</div>
+        <div id="horlogeActuelle" class="horloge-principale">--:--:--</div>
         <button class="btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
     
@@ -318,6 +323,14 @@
     let compteARebours = 10;
     let intervalId = null;
 
+    function mettreAJourHorloge() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('horlogeActuelle').innerText = `${h}:${m}:${s}`;
+    }
+
     function demarrerJournee() {
         document.getElementById('modalStart').style.display = 'none';
         localStorage.setItem('tourneeDemarree', 'true'); // MÉMORISATION DU CLIC
@@ -518,6 +531,9 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         initTheme();
+        
+        mettreAJourHorloge();
+        setInterval(mettreAJourHorloge, 1000);
         
         // VÉRIFIER SI LA JOURNÉE A DÉJÀ ÉTÉ DÉMARRÉE
         if (localStorage.getItem('tourneeDemarree') === 'true') {

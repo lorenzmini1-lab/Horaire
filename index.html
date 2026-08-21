@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
+<html lang="fr"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ma Tournée Dynamique v3.9</title>
@@ -87,16 +86,16 @@
         .hist-header { display: flex; justify-content: space-between; font-weight: bold; }
     </style>
 </head>
-<body class="dark-mode">
+<body class="light-mode">
 
-<div id="modalStart">
+<div id="modalStart" style="display: none;">
     <div class="logo-start">🚛</div>
     <h1 style="color: var(--accent); margin-bottom: 10px;">BONJOUR !</h1>
     <p style="margin-bottom: 30px; font-size: 0.9em; opacity: 0.8;">Es-tu prêt à commencer ta tournée ?</p>
     <button class="btn-start" onclick="demarrerJournee()">DÉMARRER MA JOURNÉE</button>
 </div>
 
-<div id="customConfirm">
+<div id="customConfirm" style="display: none;">
     <div class="modal-content" style="border-color: var(--danger);">
         <h3 style="margin-top:0; color: var(--danger);">⚠️ Supprimer ?</h3>
         <div style="display:flex; gap:10px; margin-top:20px;">
@@ -114,10 +113,10 @@
     </div>
 </div>
 
-<div id="modalEdit">
+<div id="modalEdit" style="display: none;">
     <div class="modal-content">
-        <h3 id="titreModalEdit" style="margin-top:0; color: var(--accent); margin-bottom: 20px;">✏️ Étape</h3>
-        <input type="hidden" id="editIndex">
+        <h3 id="titreModalEdit" style="margin-top:0; color: var(--accent); margin-bottom: 20px;">➕ Ajouter une étape</h3>
+        <input type="hidden" id="editIndex" value="">
         <input type="time" id="newHeure" class="input-modal">
         <input type="text" id="newGps" placeholder="Coordonnées ou Adresse" class="input-modal">
         <select id="newLabel" class="input-modal">
@@ -133,8 +132,8 @@
 
 <div class="app">
     <div class="header-controls">
-        <div class="status-gps" id="statusGps">🛰️ RECHERCHE GPS...</div>
-        <div id="horlogeActuelle" class="horloge-principale">--:--:--</div>
+        <div class="status-gps" id="statusGps">📡 GPS OK</div>
+        <div id="horlogeActuelle" class="horloge-principale">21:03:59</div>
         <button class="btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
     
@@ -150,7 +149,7 @@
     <div style="margin-top:30px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
         <button class="btn-save" onclick="genererNouveauCode()">⚙️ GÉNÉRER CODE GITHUB</button>
         <div id="zoneExport" style="display:none">
-            <textarea id="codeOutput" readonly></textarea>
+            <textarea id="codeOutput" readonly=""></textarea>
             <button class="btn-save" style="background:var(--safe); margin-top:10px;" onclick="copierCode()">📋 COPIER LE CODE</button>
         </div>
         <button onclick="forcerReset()" style="background:none; color:#666; border:none; width:100%; margin-top:15px; font-size:0.8em; text-decoration:underline">Réinitialiser Master</button>
@@ -158,173 +157,7 @@
 </div>
 
 <script>
-        const LISTE_MASTER = [
-        {
-                "h": "07:20",
-                "gps": "50.7826858, 4.3399798",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:25",
-                "gps": "50.7885291, 4.3414057",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:28",
-                "gps": "50.7942730, 4.3412415",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:32",
-                "gps": "50.7787243, 4.3540467",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:36",
-                "gps": "50.7828007, 4.3578604",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:37",
-                "gps": "50.7823892, 4.3604944",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:39",
-                "gps": "50.7810071, 4.3666949",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:40",
-                "gps": "50.7833575, 4.3739386",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:42",
-                "gps": "50.7869441, 4.3703220",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:44",
-                "gps": "50.7886495, 4.3727225",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:47",
-                "gps": "50.7928772, 4.3726273",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:50",
-                "gps": "50.7936972, 4.3673065",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:51",
-                "gps": "50.7947988, 4.3728841",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:51",
-                "gps": "50.7954049, 4.3736211",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:52",
-                "gps": "50.7978734, 4.3757447",
-                "label": "MATIN"
-        },
-        {
-                "h": "08:25",
-                "gps": "50.7910066, 4.4172985",
-                "label": "MATIN"
-        },
-        {
-                "h": "15:50",
-                "gps": "50.7910066, 4.4172985",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:02",
-                "gps": "50.7986269, 4.3755851",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:03",
-                "gps": "50.7980270, 4.3755382",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:04",
-                "gps": "50.7953786, 4.3735383",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:05",
-                "gps": "50.7947963, 4.3728158",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:06",
-                "gps": "50.7936925, 4.3672435",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:08",
-                "gps": "50.7928804, 4.3725583",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:14",
-                "gps": "50.7887235, 4.3721915",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:17",
-                "gps": "50.7873776, 4.3714844",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:20",
-                "gps": "50.7833563, 4.3738662",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:23",
-                "gps": "50.7810276, 4.3666071",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:26",
-                "gps": "50.7823657, 4.3605855",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:27",
-                "gps": "50.7827827, 4.3578188",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:30",
-                "gps": "50.7786227, 4.3545197",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:34",
-                "gps": "50.7826023, 4.3401699",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:40",
-                "gps": "50.7885234, 4.3414383",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:48",
-                "gps": "50.7938468, 4.3399805",
-                "label": "APRÈS-MIDI"
-        }
-];
+        const LISTE_MASTER = [];
 
     let etapes = [];
     let maPositionActuelle = null;
@@ -587,5 +420,6 @@
         setInterval(afficher, 1000);
     });
 </script>
-</body>
-</html>
+
+
+</body></html>

@@ -30,7 +30,6 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; transition: background 0.3s; overflow-x: hidden; }
         .app { max-width: 600px; margin: auto; }
         
-        /* MODAL DEMARRAGE ADAPTATIF */
         #modalStart {
             position: fixed; top:0; left:0; width:100%; height:100%;
             background: var(--bg); display: flex; flex-direction: column;
@@ -49,7 +48,6 @@
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
         .status-gps { flex-grow: 1; font-size: 0.85em; text-align: center; color: #000; background: var(--accent); padding: 12px; border-radius: 12px; font-weight: 800; }
         
-        /* HORLOGE */
         .horloge-principale { font-size: 1.2em; font-weight: 900; color: var(--accent); background: var(--card-bg); padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); font-variant-numeric: tabular-nums; text-align: center; }
         
         .btn-theme { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 12px; font-size: 1.2em; width: 45px; height: 45px; cursor: pointer; }
@@ -64,18 +62,16 @@
         .retard { color: var(--danger); background: rgba(255, 68, 68, 0.1); border: 1px solid var(--danger); } 
         .avance { color: var(--safe); background: rgba(0, 255, 0, 0.1); border: 1px solid var(--safe); }
         
-        .btn-ok { background: var(--safe); color: white; padding: 10px 15px; border-radius: 8px; border:none; font-weight:bold; }
-        .btn-edit { background: #333; color: #fff; border: none; padding: 10px; border-radius: 8px; }
-        .btn-delete { background: #441111; color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 8px; font-weight: bold; }
+        .btn-ok { background: var(--safe); color: white; padding: 10px 15px; border-radius: 8px; border:none; font-weight:bold; cursor: pointer; }
+        .btn-edit { background: #333; color: #fff; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .btn-delete { background: #441111; color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         .dist-live { font-size: 0.85em; margin-top: 10px; color: var(--info); font-weight: 600; }
         .fait-visuel { opacity: 0.3; transform: scale(0.98); border-left-color: var(--safe); }
         
-        /* MODALS */
         #customConfirm, #modalFin, #modalEdit { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 2px solid var(--accent); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        /* INPUTS MODAL */
         .input-modal { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1em; box-sizing: border-box; }
 
         .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
@@ -99,8 +95,8 @@
     <div class="modal-content" style="border-color: var(--danger);">
         <h3 style="margin-top:0; color: var(--danger);">⚠️ Supprimer ?</h3>
         <div style="display:flex; gap:10px; margin-top:20px;">
-            <button onclick="validerSuppression()" style="background:var(--danger); color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold;">OUI</button>
-            <button onclick="document.getElementById('customConfirm').style.display='none'" style="background:#444; color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold;">NON</button>
+            <button onclick="validerSuppression()" style="background:var(--danger); color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">OUI</button>
+            <button onclick="document.getElementById('customConfirm').style.display='none'" style="background:#444; color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">NON</button>
         </div>
     </div>
 </div>
@@ -108,7 +104,7 @@
 <div id="modalFin">
     <div class="modal-content">
         <h2 style="margin-top:0; color: var(--safe);">🏁 Tournée terminée !</h2>
-        <p id="timerText">Fermeture dans 10s...</p>
+        <p id="timerText">Fin de tournée enregistrée.</p>
         <button class="btn-start" style="padding:10px 20px; font-size:0.9em" onclick="annulerFermeture()">RESTER ICI</button>
     </div>
 </div>
@@ -116,9 +112,9 @@
 <div id="modalEdit" style="display: none;">
     <div class="modal-content">
         <h3 id="titreModalEdit" style="margin-top:0; color: var(--accent); margin-bottom: 20px;">✏️ Modifier l'étape</h3>
-        <input type="hidden" id="editIndex" value="17">
+        <input type="hidden" id="editIndex" value="">
         <input type="time" id="newHeure" class="input-modal">
-        <input type="text" id="newGps" placeholder="Coordonnées ou Adresse" class="input-modal">
+        <input type="text" id="newGps" placeholder="Coordonnées (ex: 50.84, 4.43) ou Adresse" class="input-modal">
         <select id="newLabel" class="input-modal">
             <option value="MATIN">MATIN</option>
             <option value="APRÈS-MIDI">APRÈS-MIDI</option>
@@ -132,140 +128,14 @@
 
 <div class="app">
     <div class="header-controls">
-        <div class="status-gps" id="statusGps">📡 GPS OK</div>
-        <div id="horlogeActuelle" class="horloge-principale">18:42:07</div>
+        <div class="status-gps" id="statusGps">📡 Recherche GPS...</div>
+        <div id="horlogeActuelle" class="horloge-principale">00:00:00</div>
         <button class="btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
     
     <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="ouvrirModalEdit(-1)">➕ AJOUTER ÉTAPE</button>
 
-    <div id="listeTournee"><div class="separateur">☀️ MATIN</div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:35</span>
-                <span class="temps-ecart retard">+11h 7m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(0)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(0)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(0)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:40</span>
-                <span class="temps-ecart retard">+11h 2m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(1)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(1)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(1)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:47</span>
-                <span class="temps-ecart retard">+10h 55m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(2)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(2)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(2)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:48</span>
-                <span class="temps-ecart retard">+10h 54m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(3)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(3)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(3)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:50</span>
-                <span class="temps-ecart retard">+10h 52m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(4)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(4)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(4)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:52</span>
-                <span class="temps-ecart retard">+10h 50m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(5)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(5)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(5)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:55</span>
-                <span class="temps-ecart retard">+10h 47m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(6)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(6)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(6)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">07:57</span>
-                <span class="temps-ecart retard">+10h 45m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(7)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(7)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(7)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">08:25</span>
-                <span class="temps-ecart retard">+10h 17m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(8)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(8)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(8)">×</button>
-            </div>
-            </div><div class="separateur">🌙 APRÈS-MIDI</div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">15:50</span>
-                <span class="temps-ecart retard">+2h 52m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(9)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(9)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(9)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:11</span>
-                <span class="temps-ecart retard">+2h 31m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(10)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(10)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(10)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:12</span>
-                <span class="temps-ecart retard">+2h 30m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(11)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(11)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(11)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:13</span>
-                <span class="temps-ecart retard">+2h 29m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(12)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(12)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(12)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:17</span>
-                <span class="temps-ecart retard">+2h 25m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(13)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(13)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(13)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:18</span>
-                <span class="temps-ecart retard">+2h 24m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(14)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(14)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(14)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:19</span>
-                <span class="temps-ecart retard">+2h 23m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(15)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(15)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(15)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:22</span>
-                <span class="temps-ecart retard">+2h 20m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(16)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(16)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(16)">×</button>
-            </div>
-            </div><div class="ligne-etape "><div class="etape-haut">
-                <span class="heure-col">16:26</span>
-                <span class="temps-ecart retard">+2h 16m 7s</span>
-                <button class="btn-ok" onclick="validerEtMasquer(17)">OK</button>
-                <button class="btn-edit" onclick="ouvrirModalEdit(17)">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(17)">×</button>
-            </div>
-            </div></div>
+    <div id="listeTournee"></div>
     
     <div class="historique-zone">
         <h4 style="margin-top:0; color:var(--info)">📜 RÉCAPITULATIF DES PASSAGES</h4>
@@ -278,103 +148,31 @@
             <textarea id="codeOutput" readonly=""></textarea>
             <button class="btn-save" style="background:var(--safe); margin-top:10px;" onclick="copierCode()">📋 COPIER LE CODE</button>
         </div>
-        <button onclick="forcerReset()" style="background:none; color:#666; border:none; width:100%; margin-top:15px; font-size:0.8em; text-decoration:underline">Réinitialiser Master</button>
+        <button onclick="forcerReset()" style="background:none; color:#666; border:none; width:100%; margin-top:15px; font-size:0.8em; text-decoration:underline; cursor:pointer;">Réinitialiser Master</button>
     </div>
 </div>
 
 <script>
-        const LISTE_MASTER = [
-        {
-                "h": "07:35",
-                "gps": "50.847, 4.44485",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:40",
-                "gps": "50.8419, 4.45162",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:47",
-                "gps": "50.839, 4.44807",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:48",
-                "gps": "50.8397, 4.452",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:50",
-                "gps": "50.8381, 4.45279",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:52",
-                "gps": "50.8327, 4.44638",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:55",
-                "gps": "50.8316, 4.44364",
-                "label": "MATIN"
-        },
-        {
-                "h": "07:57",
-                "gps": "50.8312, 4.4354",
-                "label": "MATIN"
-        },
-        {
-                "h": "08:25",
-                "gps": "50.7906, 4.41783",
-                "label": "MATIN"
-        },
-        {
-                "h": "15:50",
-                "gps": "50.7906, 4.41783",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:11",
-                "gps": "50.8312, 4.4354",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:12",
-                "gps": "50.8315, 4.44358",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:13",
-                "gps": "50.8327, 4.44638",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:17",
-                "gps": "50.8392, 4.44869",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:18",
-                "gps": "50.8397, 4.452",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:19",
-                "gps": "Olieslagerslaan 32, 1150 Woluwe Saint Pierre",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:22",
-                "gps": "50.8419, 4.45162",
-                "label": "APRÈS-MIDI"
-        },
-        {
-                "h": "16:26",
-                "gps": "50.847, 4.44485",
-                "label": "APRÈS-MIDI"
-        }
-];
+    const LISTE_MASTER = [
+        { "h": "07:35", "gps": "Avenue Emile Vandervelde 47, 1200 Woluwe-Saint-Lambert", "label": "MATIN" },
+        { "h": "07:40", "gps": "Chau. de Stockel 310, 1200 Woluwe-Saint-Lambert", "label": "MATIN" },
+        { "h": "07:47", "gps": "Rue Konkel 149, 1200 Woluwe Saint Lambert", "label": "MATIN" },
+        { "h": "07:48", "gps": "Rue Konkel 220, 1200 Bruxelles", "label": "MATIN" },
+        { "h": "07:50", "gps": "Olieslagerslaan 32, 1150 Woluwe Saint Pierre", "label": "MATIN" },
+        { "h": "07:52", "gps": "Av. Edmond Parmentier 246, 1150 Woluwe-Saint-Pierre", "label": "MATIN" },
+        { "h": "07:55", "gps": "Av. Edmond Parmentier 135, 1150 Woluwe-Saint-Pierre", "label": "MATIN" },
+        { "h": "07:57", "gps": "Av. Edmond Parmentier 2, 1150 Woluwe-Saint-Pierre", "label": "MATIN" },
+        { "h": "08:25", "gps": "Kattenberg 19, 1170 Watermael-Boitsfort", "label": "MATIN" },
+        { "h": "15:50", "gps": "Kattenberg 19, 1170 Watermael-Boitsfort", "label": "APRÈS-MIDI" },
+        { "h": "16:11", "gps": "Av. Edmond Parmentier 2, 1150 Woluwe-Saint-Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:12", "gps": "Av. Edmond Parmentier 135, 1150 Woluwe-Saint-Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:13", "gps": "Av. Edmond Parmentier 246, 1150 Woluwe-Saint-Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:17", "gps": "Rue Konkel 149, 1200 Woluwe Saint Lambert", "label": "APRÈS-MIDI" },
+        { "h": "16:18", "gps": "Rue Konkel 220, 1200 Bruxelles", "label": "APRÈS-MIDI" },
+        { "h": "16:19", "gps": "Olieslagerslaan 32, 1150 Woluwe Saint Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:22", "gps": "Chau. de Stockel 310, 1200 Woluwe-Saint-Lambert", "label": "APRÈS-MIDI" },
+        { "h": "16:26", "gps": "Avenue Emile Vandervelde 47, 1200 Woluwe-Saint-Lambert", "label": "APRÈS-MIDI" }
+    ];
 
     let etapes = [];
     let maPositionActuelle = null;
@@ -382,6 +180,7 @@
     let timerFinActive = false;
     let compteARebours = 10;
     let intervalId = null;
+    const coordsCache = {}; 
 
     function mettreAJourHorloge() {
         const now = new Date();
@@ -475,7 +274,7 @@
         if (!h || !g) return;
         
         if (idx !== "") {
-            etapes[idx] = { ...etapes[idx], hPrevue: h, gps: g, label: l };
+            etapes[idx] = { ...etapes[idx], hPrevue: h, gps: g, label: l, dist: null };
         } else { 
             etapes.push({ hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null }); 
             etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue)); 
@@ -484,11 +283,18 @@
         save(); 
         fermerModalEdit(); 
         afficher();
+        calculerToutesLesDistances();
+    }
+
+    function demanderSuppression(idx) { 
+        indexASupprimer = idx; 
+        document.getElementById('customConfirm').style.display = 'flex'; 
     }
 
     function validerSuppression() { 
         if(indexASupprimer !== null) { 
             etapes.splice(indexASupprimer, 1); 
+            indexASupprimer = null;
             save(); 
             afficher(); 
         } 
@@ -501,7 +307,9 @@
                 maPositionActuelle = { lat: pos.coords.latitude, lon: pos.coords.longitude };
                 document.getElementById('statusGps').innerText = `📡 GPS OK`;
                 calculerToutesLesDistances();
-            }, null, { enableHighAccuracy: true });
+            }, (err) => {
+                document.getElementById('statusGps').innerText = `⚠️ GPS Inaccessible`;
+            }, { enableHighAccuracy: true });
         }
     }
 
@@ -512,20 +320,52 @@
         return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    function calculerToutesLesDistances() {
+    async function obtenirCoordonnees(chaineGps) {
+        if (!chaineGps) return null;
+        const nettoyee = chaineGps.replace('|', ',').trim();
+        
+        if (coordsCache[nettoyee]) return coordsCache[nettoyee];
+
+        const parts = nettoyee.split(',').map(p => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            coordsCache[nettoyee] = { lat: parts[0], lon: parts[1] };
+            return coordsCache[nettoyee];
+        }
+
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(nettoyee)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+                coordsCache[nettoyee] = coords;
+                return coords;
+            }
+        } catch (e) {
+            console.error("Erreur de géocodage pour:", chaineGps, e);
+        }
+        return null;
+    }
+
+    async function calculerToutesLesDistances() {
         if (!maPositionActuelle) return;
         const hAct = new Date().getHours();
-        etapes.forEach((etape, i) => {
-            if (etape.fait) return;
+        
+        for (let i = 0; i < etapes.length; i++) {
+            const etape = etapes[i];
+            if (etape.fait) continue;
             const bonCr = (etape.label === "MATIN") ? (hAct < 13) : (hAct >= 13);
-            if (!bonCr) { etapes[i].dist = null; return; }
-            const c = etape.gps.split(',').map(parseFloat);
-            if (c.length === 2) {
-                const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, c[0], c[1]);
+            if (!bonCr) { etapes[i].dist = null; continue; }
+
+            const coords = await obtenirCoordonnees(etape.gps);
+            if (coords) {
+                const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, coords.lat, coords.lon);
                 etapes[i].dist = d;
-                if (d < 50) validerEtMasquer(i, true);
+                // Modification ici : validation automatique déclenchée à moins de 10 mètres
+                if (d < 10) validerEtMasquer(i, true);
             }
-        });
+        }
+        afficher();
         verifierFin(hAct);
     }
 
@@ -557,12 +397,16 @@
             if(compteARebours <= 0) { 
                 clearInterval(intervalId); 
                 localStorage.removeItem('tourneeDemarree');
-                window.close(); 
+                document.getElementById('timerText').innerText = "Tournée terminée ! Tu peux fermer cette page.";
             }
         }, 1000);
     }
 
-    function annulerFermeture() { document.getElementById('modalFin').style.display = 'none'; if(intervalId) clearInterval(intervalId); }
+    function annulerFermeture() { 
+        document.getElementById('modalFin').style.display = 'none'; 
+        if(intervalId) clearInterval(intervalId); 
+        timerFinActive = false;
+    }
 
     function calculerEcart(hPrevue) {
         const maintenant = new Date(), [h, m] = hPrevue.split(':').map(Number), cible = new Date();
@@ -595,7 +439,7 @@
                 <span class="temps-ecart ${res.classe}">${res.texte}</span>
                 <button class="btn-ok" onclick="validerEtMasquer(${idx})">${etape.fait ? '✓' : 'OK'}</button>
                 <button class="btn-edit" onclick="ouvrirModalEdit(${idx})">✏️</button>
-                <button class="btn-delete" onclick="demanderSuppression(${idx})">×</button>
+                <button class="btn-delete" onclick="demanderSuppression(${idx})">&times;</button>
             </div>
             ${etape.dist !== null ? `<div class="dist-live">📍 À ${etape.dist}m</div>` : ""}`;
             liste.appendChild(div);
@@ -604,20 +448,33 @@
 
     function genererNouveauCode() {
         const clean = etapes.map(e => ({ h: e.hPrevue, gps: e.gps, label: e.label }));
-        let html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-        html = html.replace(/const LISTE_MASTER = \[[\s\S]*?\];/, `const LISTE_MASTER = ${JSON.stringify(clean, null, 8)};`);
-        document.getElementById('codeOutput').value = html;
+        let htmlSource = `<!DOCTYPE html>\n<html lang="fr">` + document.documentElement.innerHTML + `</html>`;
+        htmlSource = htmlSource.replace(/const LISTE_MASTER = \[[\s\S]*?\];/, `const LISTE_MASTER = ${JSON.stringify(clean, null, 8)};`);
+        
+        document.getElementById('codeOutput').value = htmlSource;
         document.getElementById('zoneExport').style.display = 'block';
     }
 
-    function copierCode() { document.getElementById('codeOutput').select(); document.execCommand("copy"); alert("Copié !"); }
-    function forcerReset() { if(confirm("Réinitialiser ?")) { 
-        localStorage.removeItem('logsTournee'); 
-        localStorage.removeItem('tourneeDemarree'); 
-        etapes = chargerMaster(); location.reload(); 
-    } }
+    async function copierCode() { 
+        const txt = document.getElementById('codeOutput').value;
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(txt);
+            alert("Code copié dans le presse-papier !");
+        } else {
+            document.getElementById('codeOutput').select();
+            document.execCommand("copy");
+            alert("Copié !");
+        }
+    }
 
-    function demanderSuppression(idx) { indexASupprimer = idx; document.getElementById('customConfirm').style.display = 'flex'; }
+    function forcerReset() { 
+        if(confirm("Réinitialiser à la liste par défaut ?")) { 
+            localStorage.removeItem('logsTournee'); 
+            localStorage.removeItem('tourneeDemarree'); 
+            etapes = chargerMaster(); 
+            location.reload(); 
+        } 
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         initTheme();
@@ -628,6 +485,8 @@
         if (localStorage.getItem('tourneeDemarree') === 'true') {
             document.getElementById('modalStart').style.display = 'none';
             demarrerGps();
+        } else {
+            document.getElementById('modalStart').style.display = 'flex';
         }
 
         const saved = localStorage.getItem('maTournee_v2');
@@ -637,6 +496,5 @@
         setInterval(afficher, 1000);
     });
 </script>
-
 
 </body></html>

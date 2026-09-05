@@ -182,7 +182,6 @@
     let intervalId = null;
     const coordsCache = {}; 
 
-    // CORRECTION DE LA NORMALISATION
     function normaliserAdresse(texte) {
         if (!texte) return "";
         return texte
@@ -192,7 +191,6 @@
             .replace(/\bAv\b/gi, "Avenue");
     }
 
-    // RÉINITIALISATION AUTOMATIQUE LE LENDEMAIN
     function verifierChangementDeJour() {
         const aujourdhui = new Date().toDateString();
         const derniereDate = localStorage.getItem('derniereDateUtilisation');
@@ -209,11 +207,12 @@
         localStorage.setItem('derniereDateUtilisation', aujourdhui);
     }
 
+    // CORRECTION ICI : Masque le matin passé après 13h au lieu de 9h, et n'active pas le pop-up de fin
     function verifierEtValiderHoraire() {
         const maintenant = new Date();
         const heureActuelle = maintenant.getHours();
 
-        if (heureActuelle >= 9) {
+        if (heureActuelle >= 13) {
             let modif = false;
             etapes.forEach(e => {
                 if (e.label === "MATIN" && !e.fait) {
@@ -226,7 +225,6 @@
             if (modif) {
                 save();
             }
-            localStorage.setItem('tourneeDemarree', 'true');
         }
     }
 
@@ -429,10 +427,13 @@
         }
     }
 
+    // CORRECTION ICI : Vérifie uniquement la fin du créneau si au moins une étape a été validée manuellement ou par GPS
     function verifierFin(hAct) {
         const cr = hAct < 13 ? "MATIN" : "APRÈS-MIDI";
         const etDuCr = etapes.filter(e => e.label === cr);
-        if (etDuCr.length > 0 && etDuCr.every(e => e.fait) && !timerFinActive) {
+        const auMoinsUneValidee = etDuCr.some(e => e.fait && e.ecartFinal && e.ecartFinal.texte !== "Passé");
+
+        if (etDuCr.length > 0 && etDuCr.every(e => e.fait) && auMoinsUneValidee && !timerFinActive) {
             timerFinActive = true;
             setTimeout(() => { document.getElementById('modalFin').style.display = 'flex'; demarrerTimerFin(); }, 2000);
         }
@@ -441,6 +442,8 @@
     function demarrerTimerFin() {
         compteARebours = 10;
         document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
+        if(intervalId) clearInterval(intervalId);
+
         intervalId = setInterval(() => {
             compteARebours--;
             document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;

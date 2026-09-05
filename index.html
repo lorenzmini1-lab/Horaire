@@ -182,6 +182,16 @@
     let intervalId = null;
     const coordsCache = {}; 
 
+    // CORRECTION DE LA NORMALISATION
+    function normaliserAdresse(texte) {
+        if (!texte) return "";
+        return texte
+            .replace(/\bChau\./gi, "Chaussée")
+            .replace(/\bChau\b/gi, "Chaussée")
+            .replace(/\bAv\./gi, "Avenue")
+            .replace(/\bAv\b/gi, "Avenue");
+    }
+
     // RÉINITIALISATION AUTOMATIQUE LE LENDEMAIN
     function verifierChangementDeJour() {
         const aujourdhui = new Date().toDateString();
@@ -360,7 +370,9 @@
 
     async function obtenirCoordonnees(chaineGps) {
         if (!chaineGps) return null;
-        const nettoyee = chaineGps.replaceAll('|', ',').trim();
+        
+        const adresseCorrige = normaliserAdresse(chaineGps);
+        const nettoyee = adresseCorrige.replaceAll('|', ',').trim();
         
         if (coordsCache[nettoyee]) return coordsCache[nettoyee];
 
@@ -426,7 +438,6 @@
         }
     }
 
-    // RÉINITIALISATION APRÈS LES 10 SECONDES
     function demarrerTimerFin() {
         compteARebours = 10;
         document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
@@ -436,16 +447,13 @@
             if(compteARebours <= 0) { 
                 clearInterval(intervalId); 
                 
-                // Réinitialisation de l'état local
                 localStorage.removeItem('tourneeDemarree');
                 etapes.forEach(e => { e.fait = false; e.cachee = false; delete e.ecartFinal; });
                 save();
 
-                // Masquage de la modale de fin
                 document.getElementById('modalFin').style.display = 'none';
                 timerFinActive = false;
 
-                // Réaffichage de la liste réinitialisée et de l'écran d'accueil
                 afficher();
                 document.getElementById('modalStart').style.display = 'flex';
             }

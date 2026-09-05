@@ -1,479 +1,554 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Feuille de Route GPS Auto</title>
-  <style>
-    :root {
-      --bg-color: #f4f6f9;
-      --card-bg: #ffffff;
-      --primary: #2563eb;
-      --success: #16a34a;
-      --warning: #ca8a04;
-      --danger: #dc2626;
-      --text-main: #1f2937;
-      --text-muted: #6b7280;
-      --border: #e5e7eb;
-    }
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ma Tournée Dynamique v4.0</title>
+    <style>
+        :root {
+            --accent: #ffcc00;
+            --safe: #28a745;
+            --danger: #ff4444;
+            --info: #00d4ff;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 600px; margin: 0 auto; }
+        body.dark-mode {
+            --bg: #000;
+            --card-bg: #111;
+            --text: #fff;
+            --border: #222;
+            --modal-overlay: rgba(0,0,0,0.9);
+        }
 
-    /* Cartes et Structure */
-    .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 12px; }
-    .title { font-size: 1.1rem; font-weight: bold; }
-    
-    /* Boutons Header */
-    .btn-group { display: flex; gap: 6px; }
-    .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
-    .btn-add { background-color: #eff6ff; color: var(--primary); }
-    .btn-github { background-color: #f3f4f6; color: var(--text-main); }
+        body.light-mode {
+            --bg: #f4f4f4;
+            --card-bg: #ffffff;
+            --text: #000;
+            --border: #ddd;
+            --modal-overlay: rgba(255,255,255,0.95);
+        }
 
-    /* Statut GPS */
-    .gps-bar { font-size: 0.85rem; padding: 8px 12px; border-radius: 8px; background: #e0f2fe; color: #0369a1; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; transition: background 0.3s; overflow-x: hidden; }
+        .app { max-width: 600px; margin: auto; }
+        
+        #modalStart {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: var(--bg); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 2000;
+            text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        .logo-start { font-size: 4em; margin-bottom: 20px; }
+        .btn-start { 
+            background: var(--accent); color: #000; border: none; 
+            padding: 20px 40px; border-radius: 50px; font-size: 1.2em; 
+            font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn-start:active { transform: scale(0.95); }
 
-    /* Sections Matin / Après-midi */
-    .section-title { font-size: 0.9rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 12px 0 8px 4px; }
+        .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
+        .status-gps { flex-grow: 1; font-size: 0.85em; text-align: center; color: #000; background: var(--accent); padding: 12px; border-radius: 12px; font-weight: 800; }
+        
+        .horloge-principale { font-size: 1.2em; font-weight: 900; color: var(--accent); background: var(--card-bg); padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); font-variant-numeric: tabular-nums; text-align: center; }
+        
+        .btn-theme { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 12px; font-size: 1.2em; width: 45px; height: 45px; cursor: pointer; }
 
-    /* Item Étape */
-    .step-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .step-item.hidden { display: none; }
-    .step-info { flex: 1; }
-    .step-time { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
-    .step-name { font-size: 0.95rem; font-weight: 600; margin: 2px 0; }
-    .step-detail { font-size: 0.8rem; color: var(--text-muted); }
-    
-    /* Écarts Horaires */
-    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-top: 4px; }
-    .badge-avance { background: #dcfce7; color: var(--success); }
-    .badge-retard { background: #fee2e2; color: var(--danger); }
-    .badge-pile { background: #fef9c3; color: var(--warning); }
+        .separateur { background: var(--card-bg); color: var(--accent); padding: 12px; text-align: center; font-weight: bold; border-radius: 8px; margin: 20px 0 10px 0; border: 1px solid var(--accent); }
+        
+        .ligne-etape { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--accent); display: flex; flex-direction: column; border: 1px solid var(--border); }
+        .etape-haut { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        
+        .heure-col { font-size: 1.1em; font-weight: 900; color: var(--accent); min-width: 60px; }
+        .temps-ecart { flex-grow: 1; font-weight: bold; text-align: center; font-size: 0.85em; padding: 8px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+        .retard { color: var(--danger); background: rgba(255, 68, 68, 0.1); border: 1px solid var(--danger); } 
+        .avance { color: var(--safe); background: rgba(0, 255, 0, 0.1); border: 1px solid var(--safe); }
+        
+        .btn-ok { background: var(--safe); color: white; padding: 10px 15px; border-radius: 8px; border:none; font-weight:bold; cursor: pointer; }
+        .btn-edit { background: #333; color: #fff; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .btn-delete { background: #441111; color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-    /* Actions Étape (Édition) */
-    .step-actions { display: flex; gap: 4px; }
-    .btn-icon { background: none; border: none; padding: 6px; cursor: pointer; font-size: 0.9rem; opacity: 0.6; }
-    .btn-icon:hover { opacity: 1; }
+        .dist-live { font-size: 0.85em; margin-top: 10px; color: var(--info); font-weight: 600; }
+        .fait-visuel { opacity: 0.3; transform: scale(0.98); border-left-color: var(--safe); }
+        
+        #customConfirm, #modalFin, #modalEdit { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 2px solid var(--accent); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .input-modal { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1em; box-sizing: border-box; }
 
-    /* Ecran d'accueil Modal */
-    .overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
-    .overlay.hidden { display: none; }
-    .modal { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 12px; }
-    .btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 8px; }
+        .btn-save { background: #007bff; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        #codeOutput { width: 100%; height: 150px; background: #000; color: #00ff00; font-size: 10px; margin-top: 10px; }
 
-    /* Formulaire Édition */
-    .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
-    .form-group input, .form-group select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.9rem; }
-    .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
-    .btn-secondary { flex: 1; padding: 10px; background: #f3f4f6; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .btn-save { flex: 1; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-
-    /* Zone Code GitHub */
-    textarea { width: 100%; height: 180px; font-family: monospace; font-size: 0.75rem; padding: 8px; border-radius: 6px; border: 1px solid var(--border); margin: 8px 0; }
-  </style>
+        .historique-zone { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-top: 20px; }
+        .hist-item { font-size: 0.85em; padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
+        .hist-header { display: flex; justify-content: space-between; font-weight: bold; }
+    </style>
 </head>
-<body>
+<body class="light-mode">
 
-  <!-- EN-TÊTE PRINCIPAL -->
-  <div class="card">
-    <div class="header">
-      <div class="title">📍 Feuille de Route</div>
-      <div class="btn-group">
-        <button class="btn-sm btn-add" onclick="ouvrirModalAjout()">➕ AJOUTER</button>
-        <button class="btn-sm btn-github" onclick="ouvrirModalGithub()">⚙️ CODE GITHUB</button>
-      </div>
+<div id="modalStart" style="display: none;">
+    <div class="logo-start">🚛</div>
+    <h1 style="color: var(--accent); margin-bottom: 10px;">BONJOUR !</h1>
+    <p style="margin-bottom: 30px; font-size: 0.9em; opacity: 0.8;">Es-tu prêt à commencer ta tournée ?</p>
+    <button class="btn-start" onclick="demarrerJournee()">DÉMARRER MA JOURNÉE</button>
+</div>
+
+<div id="customConfirm" style="display: none;">
+    <div class="modal-content" style="border-color: var(--danger);">
+        <h3 style="margin-top:0; color: var(--danger);">⚠️ Supprimer ?</h3>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button onclick="validerSuppression()" style="background:var(--danger); color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">OUI</button>
+            <button onclick="document.getElementById('customConfirm').style.display='none'" style="background:#444; color:white; flex:1; padding:15px; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">NON</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalFin">
+    <div class="modal-content">
+        <h2 style="margin-top:0; color: var(--safe);">🏁 Tournée terminée !</h2>
+        <p id="timerText">Fermeture dans 10s...</p>
+        <button class="btn-start" style="padding:10px 20px; font-size:0.9em" onclick="annulerFermeture()">RESTER ICI</button>
+    </div>
+</div>
+
+<div id="modalEdit" style="display: none;">
+    <div class="modal-content">
+        <h3 id="titreModalEdit" style="margin-top:0; color: var(--accent); margin-bottom: 20px;">✏️ Modifier l'étape</h3>
+        <input type="hidden" id="editIndex" value="">
+        <input type="time" id="newHeure" class="input-modal">
+        <input type="text" id="newGps" placeholder="Coordonnées (ex: 50.84, 4.43) ou Adresse" class="input-modal">
+        <select id="newLabel" class="input-modal">
+            <option value="MATIN">MATIN</option>
+            <option value="APRÈS-MIDI">APRÈS-MIDI</option>
+        </select>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-save" style="background:var(--safe); flex:1;" onclick="sauvegarderEtape()">ENREGISTRER</button>
+            <button class="btn-save" style="background:#444; flex:1;" onclick="fermerModalEdit()">ANNULER</button>
+        </div>
+    </div>
+</div>
+
+<div class="app">
+    <div class="header-controls">
+        <div class="status-gps" id="statusGps">📡 Recherche GPS...</div>
+        <div id="horlogeActuelle" class="horloge-principale">00:00:00</div>
+        <button class="btn-theme" onclick="toggleTheme()">🌓</button>
     </div>
     
-    <div class="gps-bar">
-      <span id="gps-status">📡 Recherche GPS...</span>
-      <span id="clock">00:00:00</span>
+    <button class="btn-save" style="background:var(--accent); color:#000; margin-bottom:15px;" onclick="ouvrirModalEdit(-1)">➕ AJOUTER ÉTAPE</button>
+
+    <div id="listeTournee"></div>
+    
+    <div class="historique-zone">
+        <h4 style="margin-top:0; color:var(--info)">📜 RÉCAPITULATIF DES PASSAGES</h4>
+        <div id="logs" style="max-height: 200px; overflow-y: auto;"></div>
     </div>
 
-    <!-- LISTE DES ÉTAPES -->
-    <div id="section-matin-title" class="section-title">Matin</div>
-    <div id="liste-matin"></div>
-
-    <div id="section-aprem-title" class="section-title">Après-Midi</div>
-    <div id="liste-aprem"></div>
-  </div>
-
-  <!-- MODAL : ÉCRAN D'ACCUEIL -->
-  <div id="modal-accueil" class="overlay">
-    <div class="modal" style="text-align: center;">
-      <div class="modal-title">👋 BONJOUR !</div>
-      <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Prêt à commencer ton parcours du jour ?</p>
-      <button class="btn-primary" onclick="demarrerJournee()">DÉMARRER MA JOURNÉE</button>
+    <div style="margin-top:30px; padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
+        <button class="btn-save" onclick="genererNouveauCode()">⚙️ GÉNÉRER CODE GITHUB</button>
+        <div id="zoneExport" style="display:none">
+            <textarea id="codeOutput" readonly=""></textarea>
+            <button class="btn-save" style="background:var(--safe); margin-top:10px;" onclick="copierCode()">📋 COPIER LE CODE</button>
+        </div>
+        <button onclick="forcerReset()" style="background:none; color:#666; border:none; width:100%; margin-top:15px; font-size:0.8em; text-decoration:underline; cursor:pointer;">Réinitialiser Master</button>
     </div>
-  </div>
+</div>
 
-  <!-- MODAL : AJOUT / ÉDITION -->
-  <div id="modal-edition" class="overlay hidden">
-    <div class="modal">
-      <div id="modal-edit-title" class="modal-title">Étape</div>
-      <input type="hidden" id="edit-id">
-      <div class="form-group">
-        <label>Horaire (HH:MM)</label>
-        <input type="time" id="edit-heure">
-      </div>
-      <div class="form-group">
-        <label>Nom du lieu / Client</label>
-        <input type="text" id="edit-nom" placeholder="Ex: Client XYZ">
-      </div>
-      <div class="form-group">
-        <label>Adresse / Notes</label>
-        <input type="text" id="edit-adresse" placeholder="Ex: Rue de la Gare 10">
-      </div>
-      <div class="form-group">
-        <label>Latitude</label>
-        <input type="number" step="any" id="edit-lat" placeholder="Ex: 50.8503">
-      </div>
-      <div class="form-group">
-        <label>Longitude</label>
-        <input type="number" step="any" id="edit-lng" placeholder="Ex: 4.3517">
-      </div>
-      <div class="form-group">
-        <label>Période</label>
-        <select id="edit-periode">
-          <option value="matin">Matin</option>
-          <option value="aprem">Après-Midi</option>
-        </select>
-      </div>
-      <div class="modal-btns">
-        <button class="btn-secondary" onclick="fermerModalEdition()">Annuler</button>
-        <button class="btn-save" onclick="sauvegarderEtape()">Enregistrer</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL : EXPORT GITHUB -->
-  <div id="modal-github" class="overlay hidden">
-    <div class="modal">
-      <div class="modal-title">⚙️ Code HTML Complet</div>
-      <p style="font-size: 0.8rem; color: var(--text-muted);">Copie ce code et remplace le contenu de ton fichier index.html sur GitHub :</p>
-      <textarea id="github-code-area" readonly></textarea>
-      <div class="modal-btns">
-        <button class="btn-secondary" onclick="fermerModalGithub()">Fermer</button>
-        <button class="btn-save" onclick="copierCodeGithub()">Copier le code</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // LISTE DES ÉTAPES PAR DÉFAUT
-    let LISTE_MASTER = [
-      { id: 1, heure: "07:35", nom: "Dépôt / Départ", adresse: "Point de départ", lat: 50.8503, lng: 4.3517, periode: "matin" },
-      { id: 2, heure: "08:25", nom: "Dernier point Matin", adresse: "Fin de tournée matin", lat: 50.8550, lng: 4.3600, periode: "matin" },
-      { id: 3, heure: "13:15", nom: "Reprise Après-Midi", adresse: "Premier point aprem", lat: 50.8600, lng: 4.3700, periode: "aprem" }
+<script>
+    const LISTE_MASTER = [
+        { "h": "07:35", "gps": "Avenue Emile Vandervelde 47, 1200 Woluwe-Saint-Lambert", "label": "MATIN" },
+        { "h": "07:40", "gps": "50.841995, 4.451544", "label": "MATIN" },
+        { "h": "07:47", "gps": "Rue Konkel 149, 1200 Woluwe Saint Lambert", "label": "MATIN" },
+        { "h": "07:48", "gps": "Rue Konkel 220, 1200 Bruxelles", "label": "MATIN" },
+        { "h": "07:50", "gps": "Olieslagerslaan 32, 1150 Woluwe Saint Pierre", "label": "MATIN" },
+        { "h": "07:52", "gps": "Av. Edmond Parmentier 246, 1150 Woluwe-Saint-Pierre", "label": "MATIN" },
+        { "h": "07:55", "gps": "Av. Edmond Parmentier 135, 1150 Woluwe-Saint-Pierre", "label": "MATIN" },
+        { "h": "07:57", "gps": "Av. Edmond Parmentier 2, 1150 Woluwe-Saint-Pierre", "label": "MATIN" },
+        { "h": "08:25", "gps": "50.791801, 4.419546", "label": "MATIN" },
+        { "h": "15:50", "gps": "50.791801, 4.419546", "label": "APRÈS-MIDI" },
+        { "h": "16:11", "gps": "Av. Edmond Parmentier 2, 1150 Woluwe-Saint-Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:12", "gps": "Av. Edmond Parmentier 135, 1150 Woluwe-Saint-Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:13", "gps": "Av. Edmond Parmentier 246, 1150 Woluwe-Saint-Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:17", "gps": "Rue Konkel 149, 1200 Woluwe Saint Lambert", "label": "APRÈS-MIDI" },
+        { "h": "16:18", "gps": "Rue Konkel 220, 1200 Bruxelles", "label": "APRÈS-MIDI" },
+        { "h": "16:19", "gps": "Olieslagerslaan 32, 1150 Woluwe Saint Pierre", "label": "APRÈS-MIDI" },
+        { "h": "16:22", "gps": "50.841995, 4.451544", "label": "APRÈS-MIDI" },
+        { "h": "16:26", "gps": "Avenue Emile Vandervelde 47, 1200 Woluwe-Saint-Lambert", "label": "APRÈS-MIDI" }
     ];
 
-    let etapesValidees = [];
-    let chronoReinit = null;
+    let etapes = [];
+    let maPositionActuelle = null;
+    let indexASupprimer = null;
+    let timerFinActive = false;
+    let compteARebours = 10;
+    let intervalId = null;
+    const coordsCache = {}; 
 
-    // INITIALISATION
-    window.onload = function() {
-      chargerDonnees();
-      verifierChangementDeJour();
-      mettreAJourHorloge();
-      setInterval(mettreAJourHorloge, 1000);
-      demarrerGPS();
-
-      // Vérification Ouverture après 09h00
-      const maintenant = new Date();
-      const heureActuelle = maintenant.getHours();
-
-      if (heureActuelle >= 9) {
-        masquerMatinAutomatique();
-        document.getElementById('modal-accueil').classList.add('hidden');
-      }
-
-      afficherListe();
-    };
-
-    // HORLOGE TEMPS RÉEL
-    function mettreAJourHorloge() {
-      const now = new Date();
-      document.getElementById('clock').innerText = now.toLocaleTimeString('fr-FR');
-    }
-
-    // DÉMARRAGE JOURNÉE (CLIC BOUTON)
-    function demarrerJournee() {
-      document.getElementById('modal-accueil').classList.add('hidden');
-      const maintenant = new Date();
-      if (maintenant.getHours() >= 9) {
-        masquerMatinAutomatique();
-      }
-      afficherListe();
-    }
-
-    // MASQUAGE AUTOMATIQUE DU MATIN (À PARTIR DE 9H)
-    function masquerMatinAutomatique() {
-      LISTE_MASTER.filter(e => e.periode === 'matin').forEach(e => {
-        if (!etapesValidees.includes(e.id)) {
-          etapesValidees.push(e.id);
-        }
-      });
-      sauvegarderEtatValide();
-    }
-
-    // RÉINITIALISATION DE LENDEMAIN
+    // RÉINITIALISATION AUTOMATIQUE LE LENDEMAIN
     function verifierChangementDeJour() {
-      const aujourdhui = new Date().toDateString();
-      const derniereVisite = localStorage.getItem('derniere_date_visite');
+        const aujourdhui = new Date().toDateString();
+        const derniereDate = localStorage.getItem('derniereDateUtilisation');
 
-      if (derniereVisite !== aujourdhui) {
-        etapesValidees = [];
-        localStorage.setItem('etapes_validees', JSON.stringify([]));
-        localStorage.setItem('derniere_date_visite', aujourdhui);
-      }
-    }
-
-    // GÉOLOCALISATION GPS
-    function demarrerGPS() {
-      if ("geolocation" in navigator) {
-        navigator.geolocation.watchPosition(
-          position => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            document.getElementById('gps-status').innerText = `📡 GPS Actif (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
-            verifierProximiteGPS(lat, lng);
-          },
-          error => {
-            document.getElementById('gps-status').innerText = "❌ GPS Indisponible";
-          },
-          { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-        );
-      }
-    }
-
-    // CALCUL DE DISTANCE (HAVERSINE)
-    function calculerDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371e3; // Rayon de la Terre en mètres
-      const φ1 = lat1 * Math.PI/180;
-      const φ2 = lat2 * Math.PI/180;
-      const Δφ = (lat2-lat1) * Math.PI/180;
-      const Δλ = (lon2-lon1) * Math.PI/180;
-
-      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ/2) * Math.sin(Δλ/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-      return R * c; // Distance en mètres
-    }
-
-    // VÉRIFICATION PROXIMITÉ ET VALIDATION AUTOMATIQUE
-    function verifierProximiteGPS(userLat, userLng) {
-      const RAYON_VALIDATION = 150; // en mètres
-
-      LISTE_MASTER.forEach(etape => {
-        if (!etapesValidees.includes(etape.id)) {
-          const dist = calculerDistance(userLat, userLng, etape.lat, etape.lng);
-          if (dist <= RAYON_VALIDATION) {
-            validerEtape(etape.id);
-          }
+        if (derniereDate && derniereDate !== aujourdhui) {
+            etapes.forEach(e => {
+                e.fait = false;
+                e.cachee = false;
+                delete e.ecartFinal;
+            });
+            save();
+            localStorage.removeItem('tourneeDemarree');
         }
-      });
+        localStorage.setItem('derniereDateUtilisation', aujourdhui);
     }
 
-    // VALIDATION D'UNE ÉTAPE
-    function validerEtape(id) {
-      if (!etapesValidees.includes(id)) {
-        etapesValidees.push(id);
-        sauvegarderEtatValide();
-        afficherListe();
-        verifierFinDeJournee();
-      }
-    }
+    function verifierEtValiderHoraire() {
+        const maintenant = new Date();
+        const heureActuelle = maintenant.getHours();
 
-    // VÉRIFICATION ET CHRONO 10 SECONDES EN FIN DE JOURNÉE
-    function verifierFinDeJournee() {
-      const toutesValidees = LISTE_MASTER.every(e => etapesValidees.includes(e.id));
-      if (toutesValidees) {
-        if (!chronoReinit) {
-          chronoReinit = setTimeout(() => {
-            etapesValidees = [];
-            sauvegarderEtatValide();
-            document.getElementById('modal-accueil').classList.remove('hidden');
-            afficherListe();
-            chronoReinit = null;
-          }, 10000); // 10 secondes
+        if (heureActuelle >= 9) {
+            let modif = false;
+            etapes.forEach(e => {
+                if (e.label === "MATIN" && !e.fait) {
+                    e.fait = true;
+                    e.cachee = true;
+                    e.ecartFinal = { texte: "Passé", classe: "avance" };
+                    modif = true;
+                }
+            });
+            if (modif) {
+                save();
+            }
+            localStorage.setItem('tourneeDemarree', 'true');
         }
-      }
     }
 
-    // CALCUL DES ÉCARTS HORAIRES
-    function obtenirBadgeEcart(heurePrevueStr) {
-      const maintenant = new Date();
-      const [heuresP, minutesP] = heurePrevueStr.split(':').map(Number);
-      
-      const prevue = new Date();
-      prevue.setHours(heuresP, minutesP, 0, 0);
-
-      const diffMinutes = Math.round((maintenant - prevue) / 60000);
-
-      if (Math.abs(diffMinutes) <= 5) {
-        return `<span class="badge badge-pile">À l'heure</span>`;
-      } else if (diffMinutes < -5) {
-        return `<span class="badge badge-avance">${Math.abs(diffMinutes)} min d'avance</span>`;
-      } else {
-        return `<span class="badge badge-retard">${diffMinutes} min de retard</span>`;
-      }
+    function mettreAJourHorloge() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('horlogeActuelle').innerText = `${h}:${m}:${s}`;
     }
 
-    // AFFICHAGE DES LISTES
-    function afficherListe() {
-      const containerMatin = document.getElementById('liste-matin');
-      const containerAprem = document.getElementById('liste-aprem');
+    function demarrerJournee() {
+        document.getElementById('modalStart').style.display = 'none';
+        localStorage.setItem('tourneeDemarree', 'true');
+        demarrerGps();
+    }
 
-      containerMatin.innerHTML = '';
-      containerAprem.innerHTML = '';
+    function initTheme() {
+        const saved = localStorage.getItem('themePref');
+        if (saved) document.body.className = saved;
+        else document.body.className = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark-mode" : "light-mode";
+    }
 
-      let compteMatinVisibles = 0;
-      let compteApremVisibles = 0;
+    function toggleTheme() {
+        document.body.className = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
+        localStorage.setItem('themePref', document.body.className);
+    }
 
-      LISTE_MASTER.sort((a,b) => a.heure.localeCompare(b.heure)).forEach(etape => {
-        const estValidee = etapesValidees.includes(etape.id);
-        if (estValidee) return; // Masque l'étape si elle est validée
+    function ajouterLogPassage(etape, auto) {
+        const logBox = document.getElementById('logs');
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+        const res = etape.ecartFinal;
+        const item = document.createElement('div');
+        item.className = 'hist-item';
+        item.innerHTML = `<div class="hist-header"><span class="hist-heure">📍 ${etape.hPrevue}</span><span class="hist-badge ${res.classe}">${res.texte}</span></div>
+                          <div style="font-size:0.8em;color:#aaa">Passé à ${timeStr} (${auto ? '🤖 Auto' : '🖐️ Manuel'})</div>`;
+        logBox.prepend(item);
+        const hist = JSON.parse(localStorage.getItem('logsTournee') || "[]");
+        hist.unshift({ hP: etape.hPrevue, hR: timeStr, ecart: res.texte, cl: res.classe, methode: auto });
+        localStorage.setItem('logsTournee', JSON.stringify(hist.slice(0, 50)));
+    }
 
-        const html = `
-          <div class="step-item">
-            <div class="step-info">
-              <div class="step-time">${etape.heure} ${obtenirBadgeEcart(etape.heure)}</div>
-              <div class="step-name">${etape.nom}</div>
-              <div class="step-detail">${etape.adresse}</div>
-            </div>
-            <div class="step-actions">
-              <button class="btn-icon" onclick="ouvrirModalEdition(${etape.id})" title="Modifier">✏️</button>
-              <button class="btn-icon" onclick="supprimerEtape(${etape.id})" title="Supprimer">🗑️</button>
-            </div>
-          </div>
-        `;
+    function chargerLogsSauvegardes() {
+        const hist = JSON.parse(localStorage.getItem('logsTournee') || "[]");
+        const logBox = document.getElementById('logs');
+        logBox.innerHTML = "";
+        hist.forEach(h => {
+            const item = document.createElement('div');
+            item.className = 'hist-item';
+            item.innerHTML = `<div class="hist-header"><span class="hist-heure">📍 ${h.hP}</span><span class="hist-badge ${h.cl}">${h.ecart}</span></div>
+                              <div style="font-size:0.8em;color:#aaa">Passé à ${h.hR} (${h.methode ? '🤖 Auto' : '🖐️ Manuel'})</div>`;
+            logBox.appendChild(item);
+        });
+    }
 
-        if (etape.periode === 'matin') {
-          containerMatin.innerHTML += html;
-          compteMatinVisibles++;
+    function chargerMaster() {
+        const data = LISTE_MASTER.map(item => ({ hPrevue: item.h, gps: item.gps, label: item.label, fait: false, cachee: false, dist: null }));
+        localStorage.setItem('maTournee_v2', JSON.stringify(data));
+        return data;
+    }
+
+    function save() { localStorage.setItem('maTournee_v2', JSON.stringify(etapes)); }
+
+    function ouvrirModalEdit(idx = -1) {
+        document.getElementById('modalEdit').style.display = 'flex';
+        const titre = document.getElementById('titreModalEdit');
+        if (idx >= 0) {
+            titre.innerText = "✏️ Modifier l'étape";
+            document.getElementById('editIndex').value = idx;
+            document.getElementById('newHeure').value = etapes[idx].hPrevue;
+            document.getElementById('newGps').value = etapes[idx].gps;
+            document.getElementById('newLabel').value = etapes[idx].label;
         } else {
-          containerAprem.innerHTML += html;
-          compteApremVisibles++;
+            titre.innerText = "➕ Ajouter une étape";
+            document.getElementById('editIndex').value = "";
+            document.getElementById('newHeure').value = "";
+            document.getElementById('newGps').value = "";
+            document.getElementById('newLabel').value = "MATIN";
         }
-      });
-
-      // Gestion de la visibilité des titres de section
-      document.getElementById('section-matin-title').style.display = compteMatinVisibles > 0 ? 'block' : 'none';
-      document.getElementById('section-aprem-title').style.display = compteApremVisibles > 0 ? 'block' : 'none';
     }
 
-    // SAUVEGARDES ET CHARGEMENT LOCALSTORAGE
-    function sauvegarderEtatValide() {
-      localStorage.setItem('etapes_validees', JSON.stringify(etapesValidees));
-    }
-
-    function chargerDonnees() {
-      const masterSauve = localStorage.getItem('liste_master');
-      if (masterSauve) {
-        LISTE_MASTER = JSON.parse(masterSauve);
-      }
-      const valideesSauve = localStorage.getItem('etapes_validees');
-      if (valideesSauve) {
-        etapesValidees = JSON.parse(valideesSauve);
-      }
-    }
-
-    function sauvegarderMaster() {
-      localStorage.setItem('liste_master', JSON.stringify(LISTE_MASTER));
-    }
-
-    // FORMULAIRE ÉDITION ET AJOUT
-    function ouvrirModalAjout() {
-      document.getElementById('edit-id').value = '';
-      document.getElementById('edit-heure').value = '';
-      document.getElementById('edit-nom').value = '';
-      document.getElementById('edit-adresse').value = '';
-      document.getElementById('edit-lat').value = '';
-      document.getElementById('edit-lng').value = '';
-      document.getElementById('modal-edit-title').innerText = "Nouvelle Étape";
-      document.getElementById('modal-edition').classList.remove('hidden');
-    }
-
-    function ouvrirModalEdition(id) {
-      const etape = LISTE_MASTER.find(e => e.id === id);
-      if (!etape) return;
-
-      document.getElementById('edit-id').value = etape.id;
-      document.getElementById('edit-heure').value = etape.heure;
-      document.getElementById('edit-nom').value = etape.nom;
-      document.getElementById('edit-adresse').value = etape.adresse;
-      document.getElementById('edit-lat').value = etape.lat;
-      document.getElementById('edit-lng').value = etape.lng;
-      document.getElementById('edit-periode').value = etape.periode;
-
-      document.getElementById('modal-edit-title').innerText = "Modifier L'Étape";
-      document.getElementById('modal-edition').classList.remove('hidden');
-    }
-
-    function fermerModalEdition() {
-      document.getElementById('modal-edition').classList.add('hidden');
+    function fermerModalEdit() {
+        document.getElementById('modalEdit').style.display = 'none';
     }
 
     function sauvegarderEtape() {
-      const id = document.getElementById('edit-id').value;
-      const heure = document.getElementById('edit-heure').value;
-      const nom = document.getElementById('edit-nom').value;
-      const adresse = document.getElementById('edit-adresse').value;
-      const lat = parseFloat(document.getElementById('edit-lat').value) || 0;
-      const lng = parseFloat(document.getElementById('edit-lng').value) || 0;
-      const periode = document.getElementById('edit-periode').value;
-
-      if (!heure || !nom) {
-        alert("Veuillez renseigner au moins l'horaire et le nom.");
-        return;
-      }
-
-      if (id) {
-        // Modification
-        const idx = LISTE_MASTER.findIndex(e => e.id == id);
-        if (idx !== -1) {
-          LISTE_MASTER[idx] = { id: parseInt(id), heure, nom, adresse, lat, lng, periode };
+        const h = document.getElementById('newHeure').value;
+        const g = document.getElementById('newGps').value;
+        const l = document.getElementById('newLabel').value;
+        const idx = document.getElementById('editIndex').value;
+        
+        if (!h || !g) return;
+        
+        if (idx !== "") {
+            etapes[idx] = { ...etapes[idx], hPrevue: h, gps: g, label: l, dist: null };
+        } else { 
+            etapes.push({ hPrevue: h, gps: g, label: l, fait: false, cachee: false, dist: null }); 
+            etapes.sort((a,b) => a.hPrevue.localeCompare(b.hPrevue)); 
         }
-      } else {
-        // Ajout
-        const nouvelId = Date.now();
-        LISTE_MASTER.push({ id: nouvelId, heure, nom, adresse, lat, lng, periode });
-      }
-
-      sauvegarderMaster();
-      afficherListe();
-      fermerModalEdition();
+        
+        save(); 
+        fermerModalEdit(); 
+        afficher();
+        calculerToutesLesDistances();
     }
 
-    function supprimerEtape(id) {
-      if (confirm("Supprimer cette étape ?")) {
-        LISTE_MASTER = LISTE_MASTER.filter(e => e.id !== id);
-        sauvegarderMaster();
-        afficherListe();
-      }
+    function demanderSuppression(idx) { 
+        indexASupprimer = idx; 
+        document.getElementById('customConfirm').style.display = 'flex'; 
     }
 
-    // EXPORT CODE GITHUB
-    function ouvrirModalGithub() {
-      const fullHTML = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-      document.getElementById('github-code-area').value = fullHTML;
-      document.getElementById('modal-github').classList.remove('hidden');
+    function validerSuppression() { 
+        if(indexASupprimer !== null) { 
+            etapes.splice(indexASupprimer, 1); 
+            indexASupprimer = null;
+            save(); 
+            afficher(); 
+        } 
+        document.getElementById('customConfirm').style.display = 'none'; 
     }
 
-    function fermerModalGithub() {
-      document.getElementById('modal-github').classList.add('hidden');
+    function demarrerGps() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition((pos) => {
+                maPositionActuelle = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                document.getElementById('statusGps').innerText = `📡 GPS OK`;
+                calculerToutesLesDistances();
+            }, (err) => {
+                document.getElementById('statusGps').innerText = `⚠️ GPS Inaccessible`;
+            }, { enableHighAccuracy: true });
+        }
     }
 
-    function copierCodeGithub() {
-      const area = document.getElementById('github-code-area');
-      area.select();
-      document.execCommand('copy');
-      alert("Code copié dans le presse-papier ! Tu peux maintenant le coller dans GitHub.");
+    function calculerDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
-  </script>
-</body>
-</html>
+
+    async function obtenirCoordonnees(chaineGps) {
+        if (!chaineGps) return null;
+        const nettoyee = chaineGps.replaceAll('|', ',').trim();
+        
+        if (coordsCache[nettoyee]) return coordsCache[nettoyee];
+
+        const parts = nettoyee.split(',').map(p => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            coordsCache[nettoyee] = { lat: parts[0], lon: parts[1] };
+            return coordsCache[nettoyee];
+        }
+
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(nettoyee)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const coords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+                coordsCache[nettoyee] = coords;
+                return coords;
+            }
+        } catch (e) {
+            console.error("Erreur de géocodage pour:", chaineGps, e);
+        }
+        return null;
+    }
+
+    async function calculerToutesLesDistances() {
+        if (!maPositionActuelle) return;
+        const hAct = new Date().getHours();
+        
+        for (let i = 0; i < etapes.length; i++) {
+            const etape = etapes[i];
+            if (etape.fait) continue;
+            const bonCr = (etape.label === "MATIN") ? (hAct < 13) : (hAct >= 13);
+            if (!bonCr) { etapes[i].dist = null; continue; }
+
+            const coords = await obtenirCoordonnees(etape.gps);
+            if (coords) {
+                const d = calculerDistance(maPositionActuelle.lat, maPositionActuelle.lon, coords.lat, coords.lon);
+                etapes[i].dist = d;
+                if (d < 10) validerEtMasquer(i, true);
+            }
+        }
+        afficher();
+        verifierFin(hAct);
+    }
+
+    function validerEtMasquer(i, auto = false) {
+        if (!etapes[i].fait) {
+            etapes[i].ecartFinal = calculerEcart(etapes[i].hPrevue);
+            etapes[i].fait = true;
+            ajouterLogPassage(etapes[i], auto);
+            save();
+            setTimeout(() => { etapes[i].cachee = true; afficher(); }, 4000);
+            afficher();
+        }
+    }
+
+    function verifierFin(hAct) {
+        const cr = hAct < 13 ? "MATIN" : "APRÈS-MIDI";
+        const etDuCr = etapes.filter(e => e.label === cr);
+        if (etDuCr.length > 0 && etDuCr.every(e => e.fait) && !timerFinActive) {
+            timerFinActive = true;
+            setTimeout(() => { document.getElementById('modalFin').style.display = 'flex'; demarrerTimerFin(); }, 2000);
+        }
+    }
+
+    // RÉINITIALISATION APRÈS LES 10 SECONDES
+    function demarrerTimerFin() {
+        compteARebours = 10;
+        document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
+        intervalId = setInterval(() => {
+            compteARebours--;
+            document.getElementById('timerText').innerText = `Fermeture dans ${compteARebours}s...`;
+            if(compteARebours <= 0) { 
+                clearInterval(intervalId); 
+                
+                // Réinitialisation de l'état local
+                localStorage.removeItem('tourneeDemarree');
+                etapes.forEach(e => { e.fait = false; e.cachee = false; delete e.ecartFinal; });
+                save();
+
+                // Masquage de la modale de fin
+                document.getElementById('modalFin').style.display = 'none';
+                timerFinActive = false;
+
+                // Réaffichage de la liste réinitialisée et de l'écran d'accueil
+                afficher();
+                document.getElementById('modalStart').style.display = 'flex';
+            }
+        }, 1000);
+    }
+
+    function annulerFermeture() { 
+        document.getElementById('modalFin').style.display = 'none'; 
+        if(intervalId) clearInterval(intervalId); 
+        timerFinActive = false;
+    }
+
+    function calculerEcart(hPrevue) {
+        const maintenant = new Date(), [h, m] = hPrevue.split(':').map(Number), cible = new Date();
+        cible.setHours(h, m, 0, 0);
+        const diff = maintenant - cible;
+        const absSec = Math.floor(Math.abs(diff) / 1000);
+        const hrs = Math.floor(absSec / 3600), min = Math.floor((absSec % 3600) / 60), sec = absSec % 60;
+        let txt = diff > 0 ? "+" : "-";
+        if (hrs > 0) txt += `${hrs}h ${min}m ${sec}s`;
+        else txt += `${min}m ${sec}s`;
+        return { texte: txt, classe: diff > 0 ? "retard" : "avance" };
+    }
+
+    function afficher() {
+        const liste = document.getElementById('listeTournee');
+        liste.innerHTML = "";
+        let dernierLabel = "";
+        etapes.forEach((etape, idx) => {
+            if (etape.cachee) return;
+            if(etape.label !== dernierLabel) {
+                const sep = document.createElement('div'); sep.className = "separateur";
+                sep.innerText = (etape.label === "MATIN" ? "☀️ " : "🌙 ") + etape.label;
+                liste.appendChild(sep); dernierLabel = etape.label;
+            }
+            const res = etape.ecartFinal || calculerEcart(etape.hPrevue);
+            div = document.createElement('div');
+            div.className = `ligne-etape ${etape.fait ? 'fait-visuel' : ''}`;
+            div.innerHTML = `<div class="etape-haut">
+                <span class="heure-col">${etape.hPrevue}</span>
+                <span class="temps-ecart ${res.classe}">${res.texte}</span>
+                <button class="btn-ok" onclick="validerEtMasquer(${idx})">${etape.fait ? '✓' : 'OK'}</button>
+                <button class="btn-edit" onclick="ouvrirModalEdit(${idx})">✏️</button>
+                <button class="btn-delete" onclick="demanderSuppression(${idx})">&times;</button>
+            </div>
+            ${etape.dist !== null ? `<div class="dist-live">📍 À ${etape.dist}m</div>` : ""}`;
+            liste.appendChild(div);
+        });
+    }
+
+    function genererNouveauCode() {
+        const clean = etapes.map(e => ({ h: e.hPrevue, gps: e.gps, label: e.label }));
+        let htmlSource = `<!DOCTYPE html>\n<html lang="fr">` + document.documentElement.innerHTML + `</html>`;
+        htmlSource = htmlSource.replace(/const LISTE_MASTER = \[[\s\S]*?\];/, `const LISTE_MASTER = ${JSON.stringify(clean, null, 8)};`);
+        
+        document.getElementById('codeOutput').value = htmlSource;
+        document.getElementById('zoneExport').style.display = 'block';
+    }
+
+    async function copierCode() { 
+        const txt = document.getElementById('codeOutput').value;
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(txt);
+            alert("Code copié dans le presse-papier !");
+        } else {
+            document.getElementById('codeOutput').select();
+            document.execCommand("copy");
+            alert("Copié !");
+        }
+    }
+
+    function forcerReset() { 
+        if(confirm("Réinitialiser à la liste par défaut ?")) { 
+            localStorage.removeItem('logsTournee'); 
+            localStorage.removeItem('tourneeDemarree'); 
+            etapes = chargerMaster(); 
+            location.reload(); 
+        } 
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        
+        const saved = localStorage.getItem('maTournee_v2');
+        etapes = (saved && saved !== "[]") ? JSON.parse(saved) : chargerMaster();
+
+        verifierChangementDeJour();
+        verifierEtValiderHoraire();
+
+        mettreAJourHorloge();
+        setInterval(mettreAJourHorloge, 1000);
+        
+        if (localStorage.getItem('tourneeDemarree') === 'true') {
+            document.getElementById('modalStart').style.display = 'none';
+            demarrerGps();
+        } else {
+            document.getElementById('modalStart').style.display = 'flex';
+        }
+
+        chargerLogsSauvegardes();
+        afficher();
+        setInterval(afficher, 1000);
+    });
+</script>
+
+</body></html>
